@@ -1726,18 +1726,36 @@ const STATUS_TEXT = { occupato: 'in pascolo', libero: 'libero', riposo: 'a ripos
 
 function generateVerdict() {
   const states = FIELDS.map(f => dataCache.fieldStatus[f.id] || 'sconosciuto');
-  const optimal = states.filter(s => s === 'ottimo').length;
-  const monitor = states.filter(s => s === 'monitora').length;
-  const critical = states.filter(s => s === 'critico').length;
-  const recovery = states.filter(s => s === 'recupero').length;
-  const total = states.length;
 
-  const optimalPct = optimal / total;
+  // Per ogni campo, considera ANCHE lo stato gestionale per distinguere
+  // problemi operativi (rilevanti) da stati attesi (campi a riposo che recuperano)
+  function isOperationallyActive(fieldId) {
+    const fs = getFieldState(fieldId);
+    return (fs.status || 'libero') !== 'riposo';
+  }
 
-  // Lista nomi pascoli per stato
+  const optimal = FIELDS.filter(f => dataCache.fieldStatus[f.id] === 'ottimo').length;
+  const monitor = FIELDS.filter(f =>
+    dataCache.fieldStatus[f.id] === 'monitora' && isOperationallyActive(f.id)
+  ).length;
+  const critical = FIELDS.filter(f =>
+    dataCache.fieldStatus[f.id] === 'critico' && isOperationallyActive(f.id)
+  ).length;
+  const recovery = FIELDS.filter(f => dataCache.fieldStatus[f.id] === 'recupero').length;
+  // Pascoli a riposo, di qualsiasi stato vegetativo
+  const resting = FIELDS.filter(f => (getFieldState(f.id).status || 'libero') === 'riposo').length;
+  const total = FIELDS.length;
+
+  const optimalPct = optimal / Math.max(1, total - resting); // calcola ratio sui pascoli "attivi"
+
+  // Liste nomi pascoli per stato (escludendo quelli a riposo dai problemi)
   const optimalNames = FIELDS.filter(f => dataCache.fieldStatus[f.id] === 'ottimo').map(f => f.name);
-  const monitorNames = FIELDS.filter(f => dataCache.fieldStatus[f.id] === 'monitora').map(f => f.name);
-  const criticalNames = FIELDS.filter(f => dataCache.fieldStatus[f.id] === 'critico').map(f => f.name);
+  const monitorNames = FIELDS.filter(f =>
+    dataCache.fieldStatus[f.id] === 'monitora' && isOperationallyActive(f.id)
+  ).map(f => f.name);
+  const criticalNames = FIELDS.filter(f =>
+    dataCache.fieldStatus[f.id] === 'critico' && isOperationallyActive(f.id)
+  ).map(f => f.name);
   const recoveryNames = FIELDS.filter(f => dataCache.fieldStatus[f.id] === 'recupero').map(f => f.name);
 
   let color, title, body;
@@ -1775,6 +1793,11 @@ function generateVerdict() {
     color = 'yellow';
     title = 'Stato medio';
     body = `Vegetazione complessivamente discreta. ${optimal} ottimi, ${monitor} da monitorare.`;
+  }
+
+  // Pascoli a riposo: nota informativa, non allerta
+  if (resting > 0) {
+    body += ` <em style="color:var(--ink-faint);">${resting} pascol${resting > 1 ? 'i' : 'o'} a riposo in fase di recupero (non conteggiat${resting > 1 ? 'i' : 'o'} qui).</em>`;
   }
 
   // Aggiunta meteo: se piove >5mm nei prossimi 3 giorni
@@ -1978,39 +2001,72 @@ function renderAlerts() {
   const alerts = [];
 
   // Allerte: campi in calo o critici, campi quasi pronti dal recupero
+  // ATTENZIONE: incrociamo stato vegetativo (NDVI) con stato gestionale (libero/occupato/riposo)
+  // - "a riposo": silenziamo gli alert negativi (è atteso, è il senso del riposo)
+  // - "libero": alert solo se critico (per non aprirlo per sbaglio)
+  // - "occupato": alert pieni (gli animali sono lì, decisione urgente)
   FIELDS.forEach(f => {
     const status = dataCache.fieldStatus[f.id];
+    const fs = getFieldState(f.id);
+    const mgmt = fs.status || 'libero'; // libero | occupato | riposo
+
     if (status === 'critico') {
-      alerts.push({
-        type: 'critical',
-        icon: '⚠',
-        text: `<strong>${f.name} in difficoltà</strong>. Vegetazione molto bassa. Valuta integrazione foraggio o spostamento.`,
-        fieldId: f.id,
-      });
+      if (mgmt === 'occupato') {
+        // Urgente: animali su pascolo esausto
+        alerts.push({
+          type: 'critical',
+          icon: '⚠',
+          text: `<strong>${f.name} in difficoltà</strong>. Gli animali sono su un pascolo esausto. Valuta spostamento o integrazione foraggio.`,
+          fieldId: f.id,
+        });
+      } else if (mgmt === 'libero') {
+        // Avviso: non aprirlo
+        alerts.push({
+          type: '',
+          icon: '⚠',
+          text: `<strong>${f.name} non pronto</strong>. Pascolo libero ma in cattivo stato. Tienilo chiuso ancora.`,
+          fieldId: f.id,
+        });
+      }
+      // mgmt === 'riposo' → nessuna allerta (è atteso che sia critico durante il riposo)
     } else if (status === 'monitora') {
-      // Calcola trend dettagliato
-      const recent = getRecentNDVI(f.id, 14);
-      if (recent.length >= 4) {
-        const sorted = recent.sort((a, b) => a.date.localeCompare(b.date));
-        const latest = sorted[sorted.length - 1].mean_ndvi;
-        const earlier = sorted[0].mean_ndvi;
-        const dropPct = ((earlier - latest) / earlier) * 100;
-        if (dropPct >= 8) {
-          alerts.push({
-            type: '',
-            icon: '⚠',
-            text: `<strong>${f.name} in calo</strong>. Vegetazione scesa del ${Math.round(dropPct)}% in 2 settimane. Tieni sotto controllo.`,
-            fieldId: f.id,
-          });
+      // Solo se occupato: il consumo è rapido, vale la pena segnalarlo
+      if (mgmt === 'occupato') {
+        const recent = getRecentNDVI(f.id, 14);
+        if (recent.length >= 4) {
+          const sorted = recent.sort((a, b) => a.date.localeCompare(b.date));
+          const latest = sorted[sorted.length - 1].mean_ndvi;
+          const earlier = sorted[0].mean_ndvi;
+          const dropPct = ((earlier - latest) / earlier) * 100;
+          if (dropPct >= 8) {
+            alerts.push({
+              type: '',
+              icon: '⚠',
+              text: `<strong>${f.name} in calo</strong>. Vegetazione scesa del ${Math.round(dropPct)}% in 2 settimane sotto carico. Valuta spostamento.`,
+              fieldId: f.id,
+            });
+          }
         }
       }
+      // riposo / libero → nessuna allerta
     } else if (status === 'recupero') {
-      alerts.push({
-        type: 'info',
-        icon: '⏱',
-        text: `<strong>${f.name} sta recuperando</strong>. Vegetazione in ripresa, presto pronto per il prossimo turno.`,
-        fieldId: f.id,
-      });
+      // Info positiva: il pascolo è in ripresa
+      if (mgmt === 'riposo') {
+        alerts.push({
+          type: 'info',
+          icon: '⏱',
+          text: `<strong>${f.name} sta recuperando</strong>. A riposo, vegetazione in ripresa. Presto pronto per il prossimo turno.`,
+          fieldId: f.id,
+        });
+      } else if (mgmt === 'libero') {
+        alerts.push({
+          type: 'info',
+          icon: '✓',
+          text: `<strong>${f.name} pronto all'uso</strong>. Vegetazione in ripresa e pascolo libero. Puoi pianificare il prossimo carico.`,
+          fieldId: f.id,
+        });
+      }
+      // occupato → nessuna allerta (è già in uso)
     }
   });
 
@@ -3065,6 +3121,10 @@ function setStatus(status) {
   renderCarico(currentFieldId);
   renderStress(currentFieldId);
   document.getElementById('capi-num').textContent = fs.capi;
+
+  // Aggiorna anche la home page (alert e verdetto cambiano in base allo stato gestionale)
+  renderAlerts();
+  renderVerdict();
 }
 
 document.addEventListener('click', e => {
