@@ -2303,12 +2303,22 @@ function generateFieldVerdictSummary(fieldId) {
   const fs = getFieldState(fieldId);
   const mgmt = fs.status || 'libero';   // libero | occupato | riposo
 
+  // Carico UBA/ha (solo se occupato)
+  const carico = getCaricoLabel(fieldId);  // { ubaHa, label, cls } o null
+
   let summary = '';
 
   if (status === 'ottimo') {
     summary = `Vegetazione <strong>${ndvi.word.toLowerCase()}</strong>, condizioni ideali per il pascolo. `;
     if (mgmt === 'occupato') {
-      summary += `Stato attuale di carico ottimale.`;
+      if (carico && (carico.cls === 'warn' || carico.cls === 'bad')) {
+        // Carico elevato/critico anche se vegetazione ottima: avvisa
+        summary += `Tuttavia il <strong>carico è ${carico.label.toLowerCase()}</strong> (${carico.ubaHa.toFixed(2)} UBA/ha) — monitora il consumo della biomassa nei prossimi giorni.`;
+      } else if (carico && carico.cls === 'low') {
+        summary += `Carico animale basso (${carico.ubaHa.toFixed(2)} UBA/ha): il pascolo è sottoutilizzato, potresti aggiungere capi.`;
+      } else {
+        summary += `Stato attuale di carico ottimale.`;
+      }
     } else if (mgmt === 'riposo') {
       summary += `Pascolo a riposo in piena forma, può essere riaperto al pascolamento.`;
     } else if (meteo.rain !== null && meteo.rain < 5) {
@@ -2321,6 +2331,9 @@ function generateFieldVerdictSummary(fieldId) {
       summary = `Vegetazione in <strong>leggero calo</strong>, ma il pascolo è già a riposo. Continua a lasciarlo recuperare.`;
     } else if (mgmt === 'occupato') {
       summary = `Vegetazione in <strong>leggero calo sotto carico</strong>`;
+      if (carico && (carico.cls === 'warn' || carico.cls === 'bad')) {
+        summary += ` con carico ${carico.label.toLowerCase()} (${carico.ubaHa.toFixed(2)} UBA/ha)`;
+      }
       if (meteo.rain !== null && meteo.rain < 10) summary += ' e poca pioggia nelle ultime settimane';
       summary += '. Valuta spostamento <strong>entro 3-4 giorni</strong>.';
     } else {
@@ -2332,13 +2345,19 @@ function generateFieldVerdictSummary(fieldId) {
     if (mgmt === 'riposo') {
       summary = `Vegetazione <strong>molto bassa</strong>, ma il pascolo è già a riposo. È atteso che sia in questa condizione mentre recupera — continua a lasciarlo chiuso.`;
     } else if (mgmt === 'occupato') {
-      summary = `Vegetazione <strong>molto bassa</strong> e stress evidente, con animali ancora sul pascolo. Considera integrazione foraggio o spostamento <strong>immediato</strong>.`;
+      summary = `Vegetazione <strong>molto bassa</strong> e stress evidente, con animali ancora sul pascolo`;
+      if (carico) summary += ` (${carico.ubaHa.toFixed(2)} UBA/ha)`;
+      summary += `. Considera integrazione foraggio o spostamento <strong>immediato</strong>.`;
     } else {
       summary = `Vegetazione <strong>molto bassa</strong> e stress evidente. Il pascolo non è pronto per essere riaperto — mantienilo chiuso e valuta di lasciarlo a riposo.`;
     }
   } else if (status === 'recupero') {
     if (mgmt === 'occupato') {
-      summary = `Vegetazione in <strong>ripresa</strong> sotto carico. Monitora attentamente, valuta spostamento per consolidare il recupero.`;
+      summary = `Vegetazione in <strong>ripresa</strong> sotto carico`;
+      if (carico && (carico.cls === 'warn' || carico.cls === 'bad')) {
+        summary += ` con carico ${carico.label.toLowerCase()}`;
+      }
+      summary += `. Monitora attentamente, valuta spostamento per consolidare il recupero.`;
     } else if (mgmt === 'riposo') {
       summary = `Vegetazione in <strong>ripresa</strong> a riposo. Sta procedendo bene — presto sarà pronto per il prossimo turno.`;
     } else {
@@ -2418,6 +2437,17 @@ function renderFieldKPIs(fieldId) {
 
 const UBA_FACTOR = { bovino: 1.0, ovino: 0.15, caprino: 0.15, equino: 1.0 };
 
+// Soglie UBA/ha calibrate per pascolo bovino estensivo appenninico
+// Riferimenti: Reg. CE 1974/2006, DM 1420/2015 (carico minimo PAC 0,2 UBA/ha),
+// letteratura per zone montane (carico sostenibile 0,3-1,0 UBA/ha)
+// I valori 2-4 UBA/ha sono tipici della pianura intensiva, non del pascolo estensivo
+function classifyUbaHa(ubaHa) {
+  if (ubaHa < 0.2)  return { label: 'Carico insufficiente', cls: 'low'  };
+  if (ubaHa < 1.0)  return { label: 'Carico ottimale',      cls: 'ok'   };
+  if (ubaHa < 2.0)  return { label: 'Carico elevato',       cls: 'warn' };
+  return                   { label: 'Carico critico',       cls: 'bad'  };
+}
+
 function renderCarico(fieldId) {
   const f = FIELDS.find(x => x.id === fieldId);
   const fs = getFieldState(fieldId);
@@ -2430,11 +2460,18 @@ function renderCarico(fieldId) {
     ubaSubEl.textContent = 'Campo libero';
   } else {
     ubaValEl.innerHTML = `${ubaHa}<span class="metric-mini-unit">UBA/ha</span>`;
-    const ratio = parseFloat(ubaHa);
-    if (ratio > 2.5) ubaSubEl.textContent = 'Carico elevato';
-    else if (ratio < 0.5) ubaSubEl.textContent = 'Carico basso';
-    else ubaSubEl.textContent = 'Ottimale per il campo';
+    ubaSubEl.textContent = classifyUbaHa(parseFloat(ubaHa)).label;
   }
+}
+
+// Helper riutilizzato dal verdetto del campo per allineare la lettura del carico
+function getCaricoLabel(fieldId) {
+  const f = FIELDS.find(x => x.id === fieldId);
+  const fs = getFieldState(fieldId);
+  if (fs.status !== 'occupato') return null;
+  const uba = (fs.capi || 0) * (UBA_FACTOR[fs.animal] || 1.0);
+  const ubaHa = uba / (f?.area || 1);
+  return { ubaHa, ...classifyUbaHa(ubaHa) };
 }
 
 function renderStress(fieldId) {
@@ -3180,6 +3217,8 @@ document.addEventListener('click', e => {
     fs.animal = newAnimal;
     saveFieldState();
     renderCarico(currentFieldId);
+    // Il verdetto legge UBA: cambio specie può cambiare la classifica
+    document.getElementById('det-verdict-summary').innerHTML = generateFieldVerdictSummary(currentFieldId);
 
     // Auto-log: cambio specie (solo se occupato e cambio reale)
     if (oldAnimal !== newAnimal && fs.status === 'occupato' && (fs.capi || 0) > 0) {
@@ -3201,6 +3240,8 @@ function changeCapi(delta) {
   document.getElementById('capi-num').textContent = n;
   saveFieldState();
   renderCarico(currentFieldId);
+  // Il verdetto del campo legge il carico UBA/ha: va rinfrescato
+  document.getElementById('det-verdict-summary').innerHTML = generateFieldVerdictSummary(currentFieldId);
 
   // Auto-log con debounce (3s di inattività prima di scrivere l'evento)
   if (n !== oldN && fs.status === 'occupato') {
