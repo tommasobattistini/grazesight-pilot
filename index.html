@@ -1924,16 +1924,22 @@ function renderRecap() {
   document.getElementById('recap-pascoli').textContent = totalFields;
   document.getElementById('recap-capi').textContent = totalCapi;
 
-  // Stato medio
-  const states = FIELDS.map(f => dataCache.fieldStatus[f.id]);
-  const optimal = states.filter(s => s === 'ottimo' || s === 'recupero').length;
-  const critical = states.filter(s => s === 'critico').length;
+  // Stato medio aziendale: esclude pascoli a riposo dal conteggio
+  // (un pascolo a riposo è "atteso", non rappresenta un problema operativo)
+  const activeFields = FIELDS.filter(f => (getFieldState(f.id).status || 'libero') !== 'riposo');
+  const activeStates = activeFields.map(f => dataCache.fieldStatus[f.id]);
+  const optimal = activeStates.filter(s => s === 'ottimo' || s === 'recupero').length;
+  const critical = activeStates.filter(s => s === 'critico').length;
   const stateEl = document.getElementById('recap-state');
   stateEl.classList.remove('yellow', 'red');
-  if (critical > 0) {
+
+  if (activeStates.length === 0) {
+    // Tutti a riposo
+    stateEl.textContent = 'Tutti a riposo';
+  } else if (critical > 0) {
     stateEl.classList.add('red');
     stateEl.textContent = 'Critico';
-  } else if (optimal / states.length >= 0.7) {
+  } else if (optimal / activeStates.length >= 0.7) {
     stateEl.textContent = 'Ottimo';
   } else {
     stateEl.classList.add('yellow');
@@ -2293,20 +2299,51 @@ function generateFieldVerdictSummary(fieldId) {
   const ndviV = latest ? latest.mean_ndvi : null;
   const ndvi = ndviToWord(ndviV);
 
+  // Stato gestionale: incrocia con la diagnosi vegetativa
+  const fs = getFieldState(fieldId);
+  const mgmt = fs.status || 'libero';   // libero | occupato | riposo
+
   let summary = '';
 
   if (status === 'ottimo') {
     summary = `Vegetazione <strong>${ndvi.word.toLowerCase()}</strong>, condizioni ideali per il pascolo. `;
-    if (meteo.rain && meteo.rain < 5) summary += 'Pioggia scarsa nelle ultime settimane, ma il pascolo regge bene.';
-    else summary += 'Il pascolo è in piena forma.';
+    if (mgmt === 'occupato') {
+      summary += `Stato attuale di carico ottimale.`;
+    } else if (mgmt === 'riposo') {
+      summary += `Pascolo a riposo in piena forma, può essere riaperto al pascolamento.`;
+    } else if (meteo.rain !== null && meteo.rain < 5) {
+      summary += 'Pioggia scarsa nelle ultime settimane, ma il pascolo regge bene.';
+    } else {
+      summary += 'Il pascolo è in piena forma.';
+    }
   } else if (status === 'monitora') {
-    summary = `Vegetazione in <strong>leggero calo</strong>`;
-    if (meteo.rain !== null && meteo.rain < 10) summary += ' e poca pioggia nelle ultime settimane';
-    summary += '. Se non piove, valuta spostamento <strong>entro 3-4 giorni</strong>.';
+    if (mgmt === 'riposo') {
+      summary = `Vegetazione in <strong>leggero calo</strong>, ma il pascolo è già a riposo. Continua a lasciarlo recuperare.`;
+    } else if (mgmt === 'occupato') {
+      summary = `Vegetazione in <strong>leggero calo sotto carico</strong>`;
+      if (meteo.rain !== null && meteo.rain < 10) summary += ' e poca pioggia nelle ultime settimane';
+      summary += '. Valuta spostamento <strong>entro 3-4 giorni</strong>.';
+    } else {
+      summary = `Vegetazione in <strong>leggero calo</strong>`;
+      if (meteo.rain !== null && meteo.rain < 10) summary += ' e poca pioggia nelle ultime settimane';
+      summary += '. Pascolo libero — meglio aspettare prima di aprirlo agli animali.';
+    }
   } else if (status === 'critico') {
-    summary = `Vegetazione <strong>molto bassa</strong> e stress evidente. Considera integrazione foraggio o spostamento <strong>immediato</strong>.`;
+    if (mgmt === 'riposo') {
+      summary = `Vegetazione <strong>molto bassa</strong>, ma il pascolo è già a riposo. È atteso che sia in questa condizione mentre recupera — continua a lasciarlo chiuso.`;
+    } else if (mgmt === 'occupato') {
+      summary = `Vegetazione <strong>molto bassa</strong> e stress evidente, con animali ancora sul pascolo. Considera integrazione foraggio o spostamento <strong>immediato</strong>.`;
+    } else {
+      summary = `Vegetazione <strong>molto bassa</strong> e stress evidente. Il pascolo non è pronto per essere riaperto — mantienilo chiuso e valuta di lasciarlo a riposo.`;
+    }
   } else if (status === 'recupero') {
-    summary = `Vegetazione in <strong>ripresa</strong> dopo sfalcio o pascolamento. Lascia ancora qualche giorno prima di riutilizzarlo.`;
+    if (mgmt === 'occupato') {
+      summary = `Vegetazione in <strong>ripresa</strong> sotto carico. Monitora attentamente, valuta spostamento per consolidare il recupero.`;
+    } else if (mgmt === 'riposo') {
+      summary = `Vegetazione in <strong>ripresa</strong> a riposo. Sta procedendo bene — presto sarà pronto per il prossimo turno.`;
+    } else {
+      summary = `Vegetazione in <strong>ripresa</strong> dopo sfalcio o pascolamento. Il pascolo è libero, lascia ancora qualche giorno prima di riutilizzarlo.`;
+    }
   } else {
     summary = `Dati insufficienti per una valutazione affidabile. Riprova nei prossimi giorni.`;
   }
@@ -3122,7 +3159,11 @@ function setStatus(status) {
   renderStress(currentFieldId);
   document.getElementById('capi-num').textContent = fs.capi;
 
-  // Aggiorna anche la home page (alert e verdetto cambiano in base allo stato gestionale)
+  // Aggiorna anche verdetto e recap (cambiano in base allo stato gestionale)
+  // — del campo corrente:
+  document.getElementById('det-verdict-summary').innerHTML = generateFieldVerdictSummary(currentFieldId);
+  // — della home:
+  renderRecap();
   renderAlerts();
   renderVerdict();
 }
