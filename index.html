@@ -1,0 +1,3154 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#fafaf5">
+<meta name="robots" content="noindex,nofollow">
+<meta name="googlebot" content="noindex,nofollow">
+<title>GrazeSight</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="GrazeSight">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23fafaf5'/%3E%3Ccircle cx='50' cy='50' r='32' fill='none' stroke='%234a6e2a' stroke-width='5'/%3E%3Ccircle cx='50' cy='50' r='10' fill='%234a6e2a'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   GRAZESIGHT · APP MOBILE v3.0
+   Connessa ai dati reali di pascoli-data
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg:           #fafaf5;
+  --bg-tint:      #f4f1e8;
+  --bg-warm:      #efe9d8;
+  --card:         #ffffff;
+  --card-tint:    #fbfaf4;
+
+  --line:         #e6e2d4;
+  --line-soft:    #f0ece0;
+  --line-strong:  #d6cfb8;
+
+  --ink:          #1a1814;
+  --ink-mid:      #3a362c;
+  --ink-soft:     #6b6457;
+  --ink-faint:    #948a78;
+  --ink-ghost:    #c0b9a8;
+
+  --moss:         #4a6e2a;
+  --moss-dk:      #36531b;
+  --moss-lt:      #6b9544;
+  --moss-pale:    #e2ead0;
+
+  --amber:        #b87520;
+  --amber-dk:     #8b5614;
+  --amber-pale:   #fae8c8;
+
+  --clay:         #a83920;
+  --clay-dk:      #7d2810;
+  --clay-pale:    #f8dccf;
+
+  --azure:        #2e6890;
+  --azure-dk:     #1d4965;
+  --azure-pale:   #d4e3ef;
+
+  --font-serif:   'DM Serif Display', Georgia, serif;
+  --font-sans:    'Manrope', system-ui, sans-serif;
+  --font-mono:    'DM Mono', 'SF Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  width: 100%; min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.06'/></svg>");
+  pointer-events: none; z-index: 0; mix-blend-mode: multiply;
+}
+
+.app {
+  position: relative; z-index: 1;
+  max-width: 480px; margin: 0 auto;
+  min-height: 100vh; padding-bottom: 88px;
+}
+
+/* HERO */
+.hero { padding: 26px 22px 24px; position: relative; }
+.greet-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.greet-icon { font-size: 28px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.06)); }
+.greet-time {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint);
+}
+.greet-text {
+  font-family: var(--font-serif); font-size: 30px; font-weight: 400;
+  line-height: 1.1; color: var(--ink); margin-bottom: 2px;
+}
+.greet-text em { font-style: italic; color: var(--moss); }
+.greet-date { font-size: 15px; color: var(--ink-soft); margin-top: 6px; }
+
+/* VERDETTO */
+.verdict {
+  margin: 18px 22px 0; border-radius: 22px; padding: 24px 22px 22px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.7) inset, 0 6px 24px rgba(74, 110, 42, 0.10), 0 1px 3px rgba(0,0,0,0.05);
+  cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.verdict:active { transform: scale(0.985); }
+.verdict.green { background: linear-gradient(135deg, #f5f8ec 0%, #e6efd0 100%); border: 1px solid #c8d8a4; }
+.verdict.yellow { background: linear-gradient(135deg, #fdf6e3 0%, #f8e9c2 100%); border: 1px solid #e8c878; }
+.verdict.red { background: linear-gradient(135deg, #fdf0eb 0%, #f8d8cc 100%); border: 1px solid #e08868; }
+
+.verdict::after {
+  content: ''; position: absolute;
+  top: -40%; right: -20%; width: 60%; height: 180%;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.4) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.verdict-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--moss-dk); margin-bottom: 12px;
+}
+.verdict.yellow .verdict-label { color: var(--amber-dk); }
+.verdict.red    .verdict-label { color: var(--clay-dk); }
+
+.verdict-label::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--moss); box-shadow: 0 0 0 3px rgba(74, 110, 42, 0.18);
+}
+.verdict.yellow .verdict-label::before { background: var(--amber); box-shadow: 0 0 0 3px rgba(184, 117, 32, 0.18); }
+.verdict.red    .verdict-label::before { background: var(--clay);  box-shadow: 0 0 0 3px rgba(168, 57, 32, 0.18); }
+
+.verdict-title {
+  font-family: var(--font-serif); font-size: 28px;
+  line-height: 1.15; color: var(--ink); margin-bottom: 14px;
+}
+.verdict-body {
+  font-size: 15px; line-height: 1.55; color: var(--ink-mid); margin-bottom: 18px;
+}
+.verdict-body strong { color: var(--ink); font-weight: 600; }
+.verdict-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--moss-dk); position: relative; z-index: 2;
+}
+.verdict.yellow .verdict-cta { color: var(--amber-dk); }
+.verdict.red    .verdict-cta { color: var(--clay-dk); }
+.verdict-cta::after { content: '→'; font-size: 14px; transition: transform 0.2s; }
+.verdict:active .verdict-cta::after { transform: translateX(3px); }
+
+/* SECTIONS */
+.section { margin: 28px 22px 0; }
+.section-title {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(to right, var(--line), transparent);
+}
+
+/* RECAP */
+.recap {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 16px; padding: 18px 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.recap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.recap-item { display: flex; flex-direction: column; gap: 2px; }
+.recap-num {
+  font-family: var(--font-serif); font-size: 30px;
+  font-weight: 400; color: var(--ink); line-height: 1;
+}
+.recap-num small {
+  font-family: var(--font-sans); font-size: 14px; font-weight: 500;
+  color: var(--ink-soft); margin-left: 4px;
+}
+.recap-label { font-size: 13px; color: var(--ink-soft); margin-top: 6px; }
+.recap-state {
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px dashed var(--line);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.recap-state-label { font-size: 13px; color: var(--ink-soft); }
+.recap-state-value {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 600; color: var(--moss-dk);
+}
+.recap-state-value::before {
+  content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--moss);
+}
+.recap-state-value.yellow { color: var(--amber-dk); }
+.recap-state-value.yellow::before { background: var(--amber); }
+.recap-state-value.red { color: var(--clay-dk); }
+.recap-state-value.red::before { background: var(--clay); }
+
+/* WEATHER STRIP */
+.weather-strip {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 16px; padding: 16px 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.weather-strip::-webkit-scrollbar { display: none; }
+.weather-row { display: flex; gap: 4px; padding: 0 8px; }
+.weather-day {
+  flex: 0 0 64px; text-align: center;
+  padding: 8px 4px; border-radius: 10px; transition: background 0.15s;
+}
+.weather-day.today { background: var(--bg-warm); }
+.weather-day-name {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 6px;
+}
+.weather-day.today .weather-day-name { color: var(--moss-dk); font-weight: 600; }
+.weather-day-icon { font-size: 24px; line-height: 1; margin-bottom: 6px; }
+.weather-day-temp {
+  font-family: var(--font-serif); font-size: 17px;
+  color: var(--ink); line-height: 1.1;
+}
+.weather-day-temp-min {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--ink-faint); margin-top: 1px;
+}
+.weather-day-rain {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--azure-dk); margin-top: 6px; font-weight: 500;
+}
+.weather-day-rain.empty { color: var(--ink-ghost); }
+
+/* CTA */
+.cta-button {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: calc(100% - 44px); margin: 24px 22px 0; padding: 18px 22px;
+  background: var(--ink); color: #faf6e8;
+  border: none; border-radius: 16px;
+  font-family: var(--font-sans); font-size: 16px; font-weight: 600;
+  letter-spacing: 0.02em; cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 4px 16px rgba(26, 24, 20, 0.20);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.cta-button:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 2px 8px rgba(26, 24, 20, 0.15);
+}
+.cta-button::after { content: '→'; font-size: 18px; }
+
+/* ALERTS */
+.alerts { margin-top: 24px; }
+.alert-card {
+  background: var(--card);
+  border: 1px solid var(--amber-pale);
+  border-left: 4px solid var(--amber);
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  display: flex; gap: 14px; align-items: flex-start;
+  cursor: pointer;
+}
+.alert-card.critical { border-color: var(--clay-pale); border-left-color: var(--clay); }
+.alert-card.info { border-color: var(--azure-pale); border-left-color: var(--azure); }
+.alert-icon {
+  flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px;
+  background: var(--amber-pale);
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.alert-card.critical .alert-icon { background: var(--clay-pale); }
+.alert-card.info .alert-icon { background: var(--azure-pale); }
+.alert-text { flex: 1; font-size: 14px; color: var(--ink-mid); line-height: 1.45; }
+.alert-text strong { color: var(--ink); font-weight: 600; }
+.alert-time {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--ink-faint); margin-top: 4px; letter-spacing: 0.05em;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: rgba(255,255,255,0.94);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid var(--line);
+  padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+  display: grid; grid-template-columns: repeat(4, 1fr); z-index: 100;
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px; background: none; border: none; cursor: pointer;
+  color: var(--ink-faint); transition: color 0.15s;
+}
+.nav-item.active { color: var(--moss-dk); }
+.nav-item:active { transform: scale(0.92); }
+.nav-icon { font-size: 22px; line-height: 1; }
+.nav-label {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+/* PAGES */
+.page { display: none; }
+.page.active { display: block; }
+
+.page-header {
+  padding: 22px 22px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--line-soft);
+}
+.page-title { font-family: var(--font-serif); font-size: 26px; color: var(--ink); }
+.page-title em { font-style: italic; color: var(--moss); }
+
+/* MAP */
+.map-container {
+  height: 320px; margin: 16px 22px;
+  border-radius: 18px; overflow: hidden;
+  border: 1px solid var(--line); position: relative;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+#map { width: 100%; height: 100%; }
+
+/* FIELD CARDS */
+.fields-list { padding: 6px 22px 22px; }
+.field-card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 16px; padding: 18px 18px; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 16px; cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  min-height: 76px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.field-card:active {
+  transform: scale(0.985);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  border-color: var(--line-strong);
+}
+.field-status-dot {
+  flex-shrink: 0; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--moss);
+  box-shadow: 0 0 0 4px rgba(74, 110, 42, 0.15);
+}
+.field-status-dot.yellow { background: var(--amber); box-shadow: 0 0 0 4px rgba(184, 117, 32, 0.15); }
+.field-status-dot.red    { background: var(--clay);  box-shadow: 0 0 0 4px rgba(168, 57, 32, 0.15); }
+.field-status-dot.rest   { background: var(--ink-ghost); box-shadow: 0 0 0 4px rgba(192, 185, 168, 0.15); }
+.field-info { flex: 1; }
+.field-name {
+  font-family: var(--font-serif); font-size: 20px; font-weight: 400;
+  color: var(--ink); line-height: 1.1; margin-bottom: 2px;
+}
+.field-meta {
+  font-size: 13px; color: var(--ink-soft);
+  display: flex; gap: 8px; align-items: center;
+}
+.field-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--ink-ghost); }
+.field-arrow { font-size: 22px; color: var(--ink-faint); flex-shrink: 0; }
+
+/* DETAIL */
+.back-bar {
+  display: flex; align-items: center; padding: 18px 22px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.back-button {
+  background: none; border: none; font-size: 16px; color: var(--ink);
+  font-family: var(--font-sans); font-weight: 500;
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  padding: 6px 10px 6px 0;
+}
+.back-button::before { content: '←'; font-size: 22px; }
+
+.field-hero { padding: 6px 22px 22px; }
+.field-hero-name {
+  font-family: var(--font-serif); font-size: 32px;
+  line-height: 1.1; margin-bottom: 4px;
+}
+.field-hero-meta {
+  font-size: 14px; color: var(--ink-soft);
+  font-family: var(--font-mono); letter-spacing: 0.04em;
+}
+
+.field-verdict {
+  margin: 0 22px 24px; padding: 22px;
+  border-radius: 20px; position: relative; overflow: hidden;
+}
+.field-verdict.green  { background: linear-gradient(135deg, #f5f8ec 0%, #e6efd0 100%); border: 1px solid #c8d8a4; }
+.field-verdict.yellow { background: linear-gradient(135deg, #fdf6e3 0%, #f8e9c2 100%); border: 1px solid #e8c878; }
+.field-verdict.red    { background: linear-gradient(135deg, #fdf0eb 0%, #f8d8cc 100%); border: 1px solid #e08868; }
+.field-verdict-title {
+  font-family: var(--font-serif); font-size: 24px; margin-bottom: 12px;
+}
+.field-verdict-summary {
+  font-size: 15px; color: var(--ink-mid); line-height: 1.55; margin-bottom: 16px;
+}
+.field-verdict-summary strong { color: var(--ink); }
+
+/* KPI GRID */
+.kpi-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin: 0 22px 24px;
+}
+.kpi-card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 16px; padding: 16px 18px;
+  min-height: 110px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.kpi-label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 6px;
+}
+.kpi-icon { font-size: 20px; margin-right: 6px; }
+.kpi-word {
+  font-family: var(--font-serif); font-size: 28px; font-weight: 400;
+  line-height: 1.05; color: var(--ink);
+}
+.kpi-word.good { color: var(--moss-dk); }
+.kpi-word.warn { color: var(--amber-dk); }
+.kpi-word.bad  { color: var(--clay-dk); }
+.kpi-word.cold { color: var(--azure-dk); }
+.kpi-detail {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--ink-faint); margin-top: 6px; letter-spacing: 0.04em;
+}
+.kpi-card.temp-card .kpi-word { font-size: 36px; }
+.kpi-card.temp-card .kpi-unit {
+  font-family: var(--font-sans); font-size: 16px;
+  font-weight: 500; color: var(--ink-soft); margin-left: 2px;
+}
+
+/* MGMT */
+.mgmt-card {
+  margin: 0 22px 24px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 16px; padding: 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.mgmt-title {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 14px;
+}
+.status-toggle {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  background: var(--bg-tint); padding: 4px; border-radius: 12px; margin-bottom: 14px;
+}
+.status-btn {
+  padding: 10px 6px; background: transparent; border: none;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+  color: var(--ink-soft); border-radius: 9px; cursor: pointer;
+  transition: all 0.15s; letter-spacing: 0.02em;
+}
+.status-btn.active {
+  background: var(--card); color: var(--ink);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.animal-select { display: none; }
+.animal-select.active { display: block; }
+.animal-row {
+  display: flex; gap: 6px; margin-bottom: 14px;
+  overflow-x: auto; scrollbar-width: none; padding-bottom: 2px;
+}
+.animal-row::-webkit-scrollbar { display: none; }
+.animal-btn {
+  flex: 0 0 auto; padding: 10px 14px;
+  background: var(--bg-tint); border: 1px solid var(--line);
+  border-radius: 12px;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+  color: var(--ink-mid); cursor: pointer;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  transition: all 0.15s;
+}
+.animal-btn.active { background: var(--moss); border-color: var(--moss); color: #faf6e8; }
+.animal-btn-icon { font-size: 16px; line-height: 1; }
+.capi-control {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-tint); border-radius: 14px; padding: 6px;
+}
+.capi-btn {
+  width: 48px; height: 48px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 11px; font-size: 22px; font-weight: 400;
+  color: var(--ink); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif);
+}
+.capi-btn:active { background: var(--bg-warm); }
+.capi-btn.big {
+  width: 38px; height: 48px; font-size: 13px;
+  font-family: var(--font-mono); font-weight: 600;
+}
+.capi-value { flex: 1; text-align: center; }
+.capi-num { font-family: var(--font-serif); font-size: 32px; line-height: 1; color: var(--ink); }
+.capi-label {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-faint); margin-top: 2px;
+}
+
+/* MINI METRICS */
+.metric-mini-grid {
+  margin: 0 22px 24px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.metric-mini {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; padding: 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.metric-mini-label {
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 8px;
+}
+.metric-mini-value {
+  font-family: var(--font-serif); font-size: 22px;
+  color: var(--ink); line-height: 1.1;
+}
+.metric-mini-unit {
+  font-family: var(--font-sans); font-size: 12px;
+  color: var(--ink-soft); margin-left: 3px; font-weight: 500;
+}
+.metric-mini-sub { font-size: 12px; color: var(--ink-soft); margin-top: 4px; }
+.stress-dots { display: inline-flex; gap: 4px; margin-top: 8px; }
+.stress-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--line-strong);
+}
+.stress-dot.on.green  { background: var(--moss); }
+.stress-dot.on.yellow { background: var(--amber); }
+.stress-dot.on.red    { background: var(--clay); }
+
+/* RECOVERY */
+.recovery-card {
+  margin: 0 22px 24px;
+  background: linear-gradient(135deg, #f0f5e5 0%, #e0ead0 100%);
+  border: 1px solid #b8c898;
+  border-radius: 18px; padding: 20px 22px;
+  position: relative; overflow: hidden;
+}
+.recovery-card::after {
+  content: ''; position: absolute;
+  top: -50%; right: -20%; width: 50%; height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 60%);
+  pointer-events: none;
+}
+.recovery-label {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--moss-dk); margin-bottom: 10px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.recovery-label::before { content: '⏱'; font-size: 14px; }
+.recovery-title { font-family: var(--font-serif); font-size: 22px; color: var(--ink); margin-bottom: 4px; }
+.recovery-detail { font-size: 14px; color: var(--ink-mid); margin-bottom: 14px; }
+.recovery-detail strong { color: var(--moss-dk); font-weight: 600; }
+.recovery-bar {
+  height: 8px; background: rgba(74, 110, 42, 0.15);
+  border-radius: 100px; overflow: hidden; position: relative;
+}
+.recovery-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--moss-lt), var(--moss));
+  border-radius: 100px;
+}
+
+/* CHART */
+.chart-card {
+  margin: 0 22px 24px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 16px; padding: 18px 18px 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.chart-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 14px;
+}
+.chart-title { font-family: var(--font-serif); font-size: 16px; color: var(--ink); }
+.chart-legend {
+  display: flex; gap: 12px;
+  font-size: 11px; font-family: var(--font-mono); color: var(--ink-soft);
+}
+.chart-legend-dot {
+  display: inline-block; width: 10px; height: 2px;
+  margin-right: 4px; vertical-align: middle;
+}
+.chart-canvas-wrap { position: relative; height: 180px; }
+
+/* ACTIONS */
+.action-row {
+  margin: 0 22px 28px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.action-btn {
+  padding: 16px 14px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 14px;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 600;
+  color: var(--ink-mid); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  transition: all 0.15s;
+}
+.action-btn:active { background: var(--bg-warm); transform: scale(0.98); }
+.action-btn-icon { font-size: 22px; }
+
+/* SKELETON LOADER */
+.skeleton {
+  background: linear-gradient(90deg, #f0ece0 0%, #f8f5e9 50%, #f0ece0 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skeleton-line { height: 12px; margin: 6px 0; }
+.skeleton-line.short { width: 60%; }
+.skeleton-line.tall { height: 30px; }
+
+/* ANIMATIONS */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in > * { animation: slideUp 0.5s ease-out backwards; }
+.fade-in > *:nth-child(1) { animation-delay: 0.05s; }
+.fade-in > *:nth-child(2) { animation-delay: 0.10s; }
+.fade-in > *:nth-child(3) { animation-delay: 0.15s; }
+.fade-in > *:nth-child(4) { animation-delay: 0.20s; }
+.fade-in > *:nth-child(5) { animation-delay: 0.25s; }
+.fade-in > *:nth-child(6) { animation-delay: 0.30s; }
+
+.footer-mini {
+  text-align: center; padding: 22px 22px 12px;
+  font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: 0.15em; color: var(--ink-ghost);
+}
+
+/* ERROR STATE */
+.error-banner {
+  margin: 12px 22px 0; padding: 12px 16px;
+  background: var(--amber-pale);
+  border: 1px solid var(--amber); border-left-width: 4px;
+  border-radius: 10px;
+  font-size: 13px; color: var(--amber-dk);
+  display: flex; align-items: center; gap: 10px;
+}
+.error-banner-icon { font-size: 18px; }
+
+/* Leaflet override */
+.leaflet-control-attribution {
+  font-size: 9px !important;
+  background: rgba(255,255,255,0.7) !important;
+}
+.leaflet-control-zoom a {
+  color: var(--ink) !important;
+  background: rgba(255,255,255,0.95) !important;
+  border: 1px solid var(--line) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SCOPRI PERCHÉ — schermata dettaglio tecnico
+   ═══════════════════════════════════════════════════════════════ */
+
+.perche-page { padding: 0 22px 22px; }
+
+.perche-section {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.perche-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.perche-value-big {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  line-height: 1;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.perche-value-big.good { color: var(--moss-dk); }
+.perche-value-big.warn { color: var(--amber-dk); }
+.perche-value-big.bad  { color: var(--clay-dk); }
+
+.perche-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.perche-interval {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+.perche-interval-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.perche-interval-bar {
+  position: relative;
+  height: 28px;
+  background: var(--bg-tint);
+  border-radius: 14px;
+  overflow: visible;
+}
+.perche-interval-range {
+  position: absolute;
+  top: 4px; bottom: 4px;
+  background: linear-gradient(90deg, rgba(74,110,42,0.20), rgba(74,110,42,0.40));
+  border: 1px solid rgba(74,110,42,0.5);
+  border-radius: 10px;
+}
+.perche-interval-marker {
+  position: absolute;
+  top: -4px;
+  width: 3px;
+  height: 36px;
+  background: var(--moss-dk);
+  box-shadow: 0 0 0 2px white;
+}
+.perche-interval-numbers {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.timeline {
+  position: relative;
+  padding-left: 24px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 6px; bottom: 6px;
+  width: 2px;
+  background: var(--line-strong);
+}
+.timeline-item {
+  position: relative;
+  margin-bottom: 14px;
+}
+.timeline-item:last-child { margin-bottom: 0; }
+.timeline-dot {
+  position: absolute;
+  left: -22px;
+  top: 4px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--moss);
+}
+.timeline-dot.s2 { border-color: var(--moss); }
+.timeline-dot.ml { border-color: var(--moss-lt); background: var(--moss-lt); }
+.timeline-dot.future { border-color: var(--ink-ghost); background: var(--card); }
+
+.timeline-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-mid);
+  letter-spacing: 0.04em;
+}
+.timeline-content {
+  font-size: 14px;
+  color: var(--ink-mid);
+  margin-top: 2px;
+}
+.timeline-content strong { color: var(--ink); font-weight: 600; }
+.timeline-content em {
+  font-style: normal;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.perche-mini-chart {
+  margin-top: 12px;
+  height: 80px;
+  position: relative;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STORICO AZIONI — eventi gestionali
+   ═══════════════════════════════════════════════════════════════ */
+
+.history-add-button {
+  width: 100%;
+  margin: 0 0 18px;
+  padding: 14px;
+  background: var(--ink);
+  color: #faf6e8;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.history-add-button:active { transform: scale(0.985); }
+.history-add-button::before { content: '+'; font-size: 20px; font-weight: 400; }
+
+.history-list {
+  position: relative;
+}
+
+.history-event {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.history-icon {
+  flex-shrink: 0;
+  width: 38px; height: 38px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: var(--bg-tint);
+}
+.history-icon.add  { background: #eef5e8; }
+.history-icon.move { background: var(--azure-pale); }
+.history-icon.cut  { background: var(--amber-pale); }
+.history-icon.rest { background: var(--bg-warm); }
+.history-icon.open { background: #f0eee5; }
+.history-icon.note { background: #f5f0f8; }
+
+.history-text {
+  flex: 1;
+  font-size: 14px;
+  color: var(--ink-mid);
+  line-height: 1.5;
+}
+.history-text strong { color: var(--ink); font-weight: 600; }
+.history-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+.history-delete {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--bg-tint);
+  border: none;
+  color: var(--ink-soft);
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.history-delete:active { background: var(--clay-pale); color: var(--clay-dk); }
+
+.history-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--ink-faint);
+  font-size: 14px;
+}
+.history-empty-icon {
+  font-size: 40px;
+  opacity: 0.4;
+  margin-bottom: 10px;
+}
+
+/* Modal aggiungi evento */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 24, 20, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+
+.modal-sheet {
+  background: var(--bg);
+  width: 100%;
+  max-width: 480px;
+  border-radius: 22px 22px 0 0;
+  padding: 20px 22px 32px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--line-strong);
+  border-radius: 2px;
+  margin: 0 auto 18px;
+}
+
+.modal-title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  color: var(--ink);
+  margin-bottom: 18px;
+}
+
+.event-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.event-type-btn {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-mid);
+  transition: all 0.15s;
+}
+.event-type-btn:active { transform: scale(0.97); }
+.event-type-btn.selected {
+  background: var(--moss);
+  border-color: var(--moss);
+  color: #faf6e8;
+}
+.event-type-btn-icon { font-size: 24px; line-height: 1; }
+
+.event-form-row {
+  margin-bottom: 14px;
+}
+.event-form-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+.event-form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--ink);
+  -webkit-appearance: none;
+}
+.event-form-input:focus {
+  outline: none;
+  border-color: var(--moss);
+}
+
+.modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+.modal-btn {
+  padding: 14px;
+  border-radius: 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+.modal-btn.cancel {
+  background: var(--bg-tint);
+  color: var(--ink-mid);
+}
+.modal-btn.save {
+  background: var(--ink);
+  color: #faf6e8;
+}
+.modal-btn:active { transform: scale(0.98); }
+
+/* ═══════════════════════════════════════════════════════════════
+   MEMORIA STAGIONALE — placeholder fine stagione
+   ═══════════════════════════════════════════════════════════════ */
+
+.memory-locked {
+  margin: 30px 22px;
+  background: linear-gradient(135deg, #f5f3ed 0%, #efe9d8 100%);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 36px 26px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.memory-locked::after {
+  content: '';
+  position: absolute;
+  top: -50%; right: -30%;
+  width: 80%; height: 200%;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.5) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.memory-icon {
+  font-size: 56px;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
+}
+.memory-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.memory-title em { font-style: italic; color: var(--moss); }
+.memory-subtitle {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin-bottom: 22px;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.memory-progress {
+  background: rgba(74, 110, 42, 0.10);
+  border-radius: 100px;
+  height: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  position: relative;
+}
+.memory-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--moss-lt), var(--moss));
+  border-radius: 100px;
+  width: 0%;
+  transition: width 0.6s ease;
+}
+.memory-progress-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.memory-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 24px;
+  text-align: center;
+}
+.memory-stat {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 8px;
+}
+.memory-stat-num {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  color: var(--ink);
+  line-height: 1;
+}
+.memory-stat-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-top: 6px;
+}
+
+.memory-cta {
+  margin-top: 24px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+}
+
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HOME -->
+  <div class="page active fade-in" id="page-home">
+    <header class="hero">
+      <div class="greet-row">
+        <div class="greet-icon" id="greet-icon">☀️</div>
+        <div class="greet-time" id="greet-time">—</div>
+      </div>
+      <h1 class="greet-text"><span id="greet-text">Caricamento</span>, <em>Tommy</em>.</h1>
+      <p class="greet-date" id="greet-subtitle">Sto recuperando i dati dei pascoli...</p>
+    </header>
+
+    <div id="error-container"></div>
+
+    <div class="verdict green" id="verdict-card" onclick="goPerche()">
+      <div class="verdict-label">Verdetto del giorno</div>
+      <div class="verdict-title" id="verdict-title">Caricamento in corso</div>
+      <div class="verdict-body" id="verdict-body">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line short"></div>
+      </div>
+      <span class="verdict-cta" onclick="goCampi()">Scopri perché</span>
+    </div>
+
+    <section class="section">
+      <div class="section-title">Recap di oggi</div>
+      <div class="recap">
+        <div class="recap-grid">
+          <div class="recap-item">
+            <div class="recap-num"><span id="recap-pascoli">—</span><small>pascoli</small></div>
+            <div class="recap-label">in gestione</div>
+          </div>
+          <div class="recap-item">
+            <div class="recap-num"><span id="recap-capi">—</span><small>capi</small></div>
+            <div class="recap-label">in pascolo attivo</div>
+          </div>
+        </div>
+        <div class="recap-state">
+          <span class="recap-state-label">Stato medio aziendale</span>
+          <span class="recap-state-value" id="recap-state">Caricamento</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">Prossimi 7 giorni</div>
+      <div id="weather-subtitle" class="section-subtitle" style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint);margin:0 22px 8px;"></div>
+      <div class="weather-strip">
+        <div class="weather-row" id="weather-row">
+          <div class="weather-day"><div class="skeleton skeleton-line"></div></div>
+          <div class="weather-day"><div class="skeleton skeleton-line"></div></div>
+          <div class="weather-day"><div class="skeleton skeleton-line"></div></div>
+          <div class="weather-day"><div class="skeleton skeleton-line"></div></div>
+          <div class="weather-day"><div class="skeleton skeleton-line"></div></div>
+          <div class="weather-day"><div class="skeleton skeleton-line"></div></div>
+          <div class="weather-day"><div class="skeleton skeleton-line"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <button class="cta-button" onclick="goCampi()">Vai ai campi</button>
+
+    <section class="section alerts" id="alerts-section">
+      <div class="section-title">Da tenere d'occhio</div>
+      <div id="alerts-container"></div>
+    </section>
+
+    <div class="footer-mini" id="data-freshness">DATI · SENTINEL-2 + ML · CARICAMENTO...</div>
+  </div>
+
+  <!-- CAMPI -->
+  <div class="page" id="page-campi">
+    <div class="page-header">
+      <h2 class="page-title">I tuoi <em>campi</em></h2>
+      <div class="greet-time" id="fields-count">— PASCOLI</div>
+    </div>
+    <div class="map-container"><div id="map"></div></div>
+    <div class="fields-list" id="fields-list"></div>
+    <div class="footer-mini">TOCCA UN CAMPO PER IL DETTAGLIO</div>
+  </div>
+
+  <!-- DETTAGLIO -->
+  <div class="page" id="page-dettaglio">
+    <div class="back-bar"><button class="back-button" onclick="goCampi()">Campi</button></div>
+
+    <div class="field-hero fade-in">
+      <div class="field-hero-name" id="det-name">—</div>
+      <div class="field-hero-meta" id="det-meta">—</div>
+    </div>
+
+    <div class="field-verdict yellow" id="det-verdict">
+      <div class="verdict-label">Stato attuale</div>
+      <div class="field-verdict-title" id="det-verdict-title">—</div>
+      <div class="field-verdict-summary" id="det-verdict-summary">—</div>
+      <span class="verdict-cta" onclick="event.stopPropagation();goPerche()">Scopri perché</span>
+    </div>
+
+    <div class="kpi-grid fade-in" id="kpi-grid">
+      <!-- popolato da JS -->
+    </div>
+
+    <div class="mgmt-card fade-in">
+      <div class="mgmt-title">Gestione campo</div>
+      <div class="status-toggle">
+        <button class="status-btn" data-status="libero" onclick="setStatus('libero')">Libero</button>
+        <button class="status-btn active" data-status="occupato" onclick="setStatus('occupato')">Occupato</button>
+        <button class="status-btn" data-status="riposo" onclick="setStatus('riposo')">A riposo</button>
+      </div>
+      <div class="animal-select active" id="animal-section">
+        <div class="animal-row">
+          <button class="animal-btn active" data-animal="bovino"><span class="animal-btn-icon">🐄</span>Bovino</button>
+          <button class="animal-btn" data-animal="ovino"><span class="animal-btn-icon">🐑</span>Ovino</button>
+          <button class="animal-btn" data-animal="caprino"><span class="animal-btn-icon">🐐</span>Caprino</button>
+          <button class="animal-btn" data-animal="equino"><span class="animal-btn-icon">🐎</span>Equino</button>
+        </div>
+        <div class="capi-control">
+          <button class="capi-btn big" onclick="changeCapi(-10)">−10</button>
+          <button class="capi-btn" onclick="changeCapi(-1)">−</button>
+          <div class="capi-value">
+            <div class="capi-num" id="capi-num">0</div>
+            <div class="capi-label">capi</div>
+          </div>
+          <button class="capi-btn" onclick="changeCapi(1)">+</button>
+          <button class="capi-btn big" onclick="changeCapi(10)">+10</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="metric-mini-grid">
+      <div class="metric-mini">
+        <div class="metric-mini-label">Carico animale</div>
+        <div class="metric-mini-value" id="carico-value">—<span class="metric-mini-unit">UBA/ha</span></div>
+        <div class="metric-mini-sub" id="carico-sub">—</div>
+      </div>
+      <div class="metric-mini">
+        <div class="metric-mini-label">Stress idrico</div>
+        <div class="metric-mini-value" id="stress-value">—</div>
+        <div class="stress-dots" id="stress-dots">
+          <span class="stress-dot"></span>
+          <span class="stress-dot"></span>
+          <span class="stress-dot"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="recovery-card" id="recovery-section" style="display:none;">
+      <div class="recovery-label">Conto alla rovescia recupero</div>
+      <div class="recovery-title" id="recovery-title">—</div>
+      <div class="recovery-detail" id="recovery-detail">—</div>
+      <div class="recovery-bar"><div class="recovery-bar-fill" id="recovery-fill" style="width:0%;"></div></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">Andamento stagionale</div>
+        <div class="chart-legend">
+          <span><span class="chart-legend-dot" style="background:var(--moss);"></span>2026</span>
+          <span><span class="chart-legend-dot" style="background:var(--ink-ghost);"></span>2025</span>
+        </div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="seasonChart"></canvas></div>
+    </div>
+
+    <div class="action-row">
+      <button class="action-btn" onclick="goStorico()">
+        <span class="action-btn-icon">📋</span>Storico azioni
+      </button>
+      <button class="action-btn" onclick="goPerche()">
+        <span class="action-btn-icon">🔬</span>Dettaglio tecnico
+      </button>
+    </div>
+
+    <div class="footer-mini" id="detail-freshness">CARICAMENTO...</div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="goHome()">
+      <span class="nav-icon">⌂</span><span class="nav-label">Home</span>
+    </button>
+    <button class="nav-item" onclick="goCampi()">
+      <span class="nav-icon">⊞</span><span class="nav-label">Campi</span>
+    </button>
+    <button class="nav-item" onclick="goMemoria()">
+      <span class="nav-icon">✦</span><span class="nav-label">Memoria</span>
+    </button>
+    <button class="nav-item" onclick="alert('Impostazioni (Consegna 4)')">
+      <span class="nav-icon">⚙</span><span class="nav-label">Impostazioni</span>
+    </button>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PAGE SCOPRI PERCHÉ — dettaglio tecnico
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="page" id="page-perche">
+    <div class="back-bar">
+      <button class="back-button" onclick="goDettaglio()">Indietro</button>
+    </div>
+
+    <div class="field-hero fade-in">
+      <div class="field-hero-name" id="perche-name">—</div>
+      <div class="field-hero-meta">DETTAGLIO TECNICO</div>
+    </div>
+
+    <div class="perche-page fade-in" id="perche-body">
+      <!-- popolato da JS -->
+    </div>
+
+    <div class="footer-mini">
+      DATI · SENTINEL-2 + SENTINEL-1 + ERA5 + ML CONFORMAL v1.2
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PAGE STORICO AZIONI
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="page" id="page-storico">
+    <div class="back-bar">
+      <button class="back-button" onclick="goDettaglio()">Indietro</button>
+    </div>
+
+    <div class="field-hero fade-in">
+      <div class="field-hero-name" id="storico-name">—</div>
+      <div class="field-hero-meta">STORICO AZIONI</div>
+    </div>
+
+    <div class="perche-page fade-in">
+      <button class="history-add-button" onclick="openEventModal()">Aggiungi azione</button>
+      <div class="history-list" id="history-list">
+        <!-- popolato da JS -->
+      </div>
+    </div>
+
+    <div class="footer-mini">
+      LE AZIONI SONO SALVATE SUL TUO TELEFONO
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PAGE MEMORIA STAGIONALE — placeholder
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="page" id="page-memoria">
+    <div class="page-header">
+      <h2 class="page-title">La tua <em>stagione</em></h2>
+      <div class="greet-time" id="memoria-year">2026</div>
+    </div>
+
+    <div class="memory-locked fade-in" id="memoria-content">
+      <!-- popolato da JS -->
+    </div>
+
+    <div class="footer-mini">
+      LA TUA STAGIONE COMPLETA SARÀ DISPONIBILE A NOVEMBRE
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL — aggiungi evento gestionale
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="event-modal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Aggiungi azione</div>
+
+      <div class="event-form-row">
+        <div class="event-form-label">Tipo di azione</div>
+        <div class="event-type-grid" id="event-type-grid">
+          <button class="event-type-btn selected" data-type="add">
+            <span class="event-type-btn-icon">🐄</span>Carico
+          </button>
+          <button class="event-type-btn" data-type="move">
+            <span class="event-type-btn-icon">↗</span>Sposta
+          </button>
+          <button class="event-type-btn" data-type="cut">
+            <span class="event-type-btn-icon">✂</span>Sfalcio
+          </button>
+          <button class="event-type-btn" data-type="rest">
+            <span class="event-type-btn-icon">⏸</span>A riposo
+          </button>
+          <button class="event-type-btn" data-type="open">
+            <span class="event-type-btn-icon">✓</span>Riaperto
+          </button>
+          <button class="event-type-btn" data-type="note">
+            <span class="event-type-btn-icon">✎</span>Nota
+          </button>
+        </div>
+      </div>
+
+      <div class="event-form-row">
+        <div class="event-form-label">Data</div>
+        <input type="date" class="event-form-input" id="event-date">
+      </div>
+
+      <div class="event-form-row" id="event-detail-row">
+        <div class="event-form-label">Dettagli (opzionale)</div>
+        <input type="text" class="event-form-input" id="event-detail" placeholder="es. 12 capi bovini, sfalcio mattutino...">
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeEventModal()">Annulla</button>
+        <button class="modal-btn save" onclick="saveEvent()">Salva</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG
+   ═══════════════════════════════════════════════════════════════ */
+
+const REPO_RAW = 'https://raw.githubusercontent.com/tommasobattistini/pascoli-data/main';
+const CURRENT_YEAR = new Date().getFullYear();
+
+// Campi Ferrini (poligoni reali — geometria identica a Streamlit)
+const FIELDS = [
+  { id: 'pascolo_1', name: 'Pascolo 1', quota: 562, slope: 'sud-est', area: 2.1,
+    coords: [[12.200372,43.854235],[12.200624,43.854057],[12.201343,43.854320],[12.201670,43.854607],[12.201745,43.854796],[12.201745,43.855249],[12.201842,43.855647],[12.201740,43.855984],[12.201407,43.856398],[12.200978,43.855833],[12.200640,43.855562],[12.200372,43.855299],[12.200072,43.855365],[12.199787,43.855133],[12.199739,43.854904],[12.199774,43.854726],[12.199880,43.854436],[12.200372,43.854235]] },
+  { id: 'pascolo_2', name: 'Pascolo 2', quota: 579, slope: 'sud', area: 3.4,
+    coords: [[12.200795,43.853858],[12.200909,43.853647],[12.200977,43.853408],[12.201314,43.853139],[12.201607,43.852981],[12.201892,43.852807],[12.202294,43.852770],[12.202499,43.853139],[12.202609,43.853408],[12.202294,43.854004],[12.202199,43.854210],[12.202287,43.854537],[12.202382,43.854690],[12.202492,43.854790],[12.202184,43.855080],[12.202199,43.855370],[12.202302,43.855518],[12.201907,43.855829],[12.201833,43.855307],[12.201782,43.854679],[12.200992,43.854020],[12.200773,43.853819],[12.200795,43.853858]] },
+  { id: 'pascolo_3', name: 'Pascolo 3', quota: 578, slope: 'sud', area: 2.3,
+    coords: [[12.199770,43.854442],[12.199463,43.854345],[12.199085,43.854230],[12.198150,43.854391],[12.198638,43.854890],[12.199197,43.854822],[12.199416,43.854903],[12.199670,43.855009],[12.199764,43.854705],[12.199770,43.854442]] },
+  { id: 'pascolo_4', name: 'Pascolo 4', quota: 574, slope: 'sud-ovest', area: 4.2,
+    coords: [[12.198132,43.852900],[12.198127,43.852317],[12.198218,43.851766],[12.198583,43.851803],[12.198774,43.851825],[12.199170,43.851731],[12.199452,43.851809],[12.199726,43.851819],[12.200026,43.851935],[12.200364,43.851925],[12.200277,43.852282],[12.200034,43.852887],[12.199930,43.853235],[12.199074,43.853103],[12.198375,43.852978],[12.198132,43.852900]] },
+  { id: 'pascolo_5', name: 'Pascolo 5', quota: 566, slope: 'sud-ovest', area: 1.8,
+    coords: [[12.196648,43.853744],[12.196640,43.853756],[12.197021,43.853607],[12.197419,43.853380],[12.197610,43.852947],[12.197854,43.852908],[12.198107,43.852994],[12.198078,43.853894],[12.197970,43.854011],[12.197920,43.854306],[12.197585,43.854372],[12.197216,43.854525],[12.196648,43.853744]] },
+  { id: 'pascolo_6', name: 'Pascolo 6', quota: 499, slope: 'nord-ovest', area: 2.7,
+    coords: [[12.195138,43.858245],[12.195166,43.858058],[12.195142,43.857745],[12.195227,43.857353],[12.195449,43.856760],[12.195582,43.856784],[12.195927,43.857124],[12.196300,43.857095],[12.196518,43.857309],[12.196703,43.857457],[12.196733,43.857592],[12.196566,43.857614],[12.196351,43.857888],[12.196317,43.858205],[12.195992,43.858422],[12.195703,43.858465],[12.195148,43.858256],[12.195138,43.858245]] },
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════ */
+
+// Stato per ogni campo (status, animal, capi) — persistenza locale via localStorage
+const FIELD_STATE_KEY = 'pascoli_field_state_v2';
+
+function loadFieldState() {
+  try {
+    const stored = localStorage.getItem(FIELD_STATE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch (e) {}
+  return {};
+}
+
+function saveFieldState() {
+  try {
+    localStorage.setItem(FIELD_STATE_KEY, JSON.stringify(FIELD_STATE));
+  } catch (e) {}
+}
+
+const FIELD_STATE = loadFieldState();
+
+// Default stato per campi senza configurazione utente
+function getFieldState(id) {
+  if (!FIELD_STATE[id]) {
+    FIELD_STATE[id] = { status: 'libero', animal: 'bovino', capi: 0 };
+  }
+  return FIELD_STATE[id];
+}
+
+// Dati NDVI/meteo caricati (cache)
+let dataCache = {
+  ndvi: {},      // { pascolo_1: [{date, mean_ndvi, mean_ndwi, source, ...}, ...] }
+  meteo: {},     // { pascolo_1: [{date, rain_mm, temp_c}, ...] }
+  forecast: {},  // { pascolo_1: [{label, icon, tMax, tMin, rain}, ...] }
+  fieldStatus: {}, // { pascolo_1: 'ottimo' / 'monitora' / 'critico' / 'recupero' }
+  lastUpdate: null,
+};
+
+let currentFieldId = null;
+let mapInstance = null;
+let chartInstance = null;
+
+/* ═══════════════════════════════════════════════════════════════
+   FETCH DATI
+   ═══════════════════════════════════════════════════════════════ */
+
+// Parser CSV semplice (robusto a virgole nei valori se quoted)
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim());
+  return lines.slice(1).map(line => {
+    const vals = line.split(',');
+    const obj = {};
+    headers.forEach((h, i) => {
+      const v = (vals[i] || '').trim();
+      // Conversione numerica per campi numerici noti
+      if (['mean_ndvi','mean_ndwi','delta_abs_ndvi','delta_abs_ndwi','rain_mm','temp_c','ndvi_lower_90','ndvi_upper_90'].includes(h)) {
+        obj[h] = v === '' || v === 'None' ? null : parseFloat(v);
+      } else if (h === 'date' || h === 'anno' || h === 'year') {
+        obj[h] = v;
+      } else {
+        obj[h] = v;
+      }
+    });
+    return obj;
+  });
+}
+
+async function fetchCSV(url) {
+  try {
+    const r = await fetch(url, { cache: 'no-cache' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const text = await r.text();
+    return parseCSV(text);
+  } catch (e) {
+    console.warn('Fetch failed:', url, e.message);
+    return null;
+  }
+}
+
+async function loadAllData() {
+  const promises = [];
+  let mostRecentUpdate = null;
+
+  for (const f of FIELDS) {
+    promises.push(
+      fetchCSV(`${REPO_RAW}/ndvi/ndvi_${f.id}_${CURRENT_YEAR}.csv`).then(d => {
+        if (d) dataCache.ndvi[f.id] = d;
+      }),
+      fetchCSV(`${REPO_RAW}/meteo/meteo_${f.id}_${CURRENT_YEAR}.csv`).then(d => {
+        if (d) dataCache.meteo[f.id] = d;
+      }),
+      fetchCSV(`${REPO_RAW}/ndvi/ndvi_${f.id}_${CURRENT_YEAR-1}.csv`).then(d => {
+        if (d) dataCache.ndvi[`${f.id}_prev`] = d;
+      }),
+    );
+  }
+
+  await Promise.allSettled(promises);
+
+  // Calcola stato per ogni campo
+  for (const f of FIELDS) {
+    dataCache.fieldStatus[f.id] = computeFieldStatus(f.id);
+  }
+
+  // Data più recente trovata
+  for (const f of FIELDS) {
+    const d = dataCache.ndvi[f.id];
+    if (d && d.length > 0) {
+      const last = d[d.length - 1].date;
+      if (!mostRecentUpdate || last > mostRecentUpdate) mostRecentUpdate = last;
+    }
+  }
+  dataCache.lastUpdate = mostRecentUpdate;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CALCOLO STATO CAMPI
+   ═══════════════════════════════════════════════════════════════ */
+
+// Restituisce l'ultima riga NDVI valida (preferisce S2, accetta ML)
+function getLatestNDVI(fieldId) {
+  const data = dataCache.ndvi[fieldId];
+  if (!data || data.length === 0) return null;
+  // Ordina per data DESC
+  const sorted = [...data].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  return sorted[0];
+}
+
+// NDVI degli ultimi N giorni (qualsiasi source)
+// Usa ultima data del CSV come riferimento, non "oggi", per evitare
+// finestre vuote quando i dati sono datati di qualche giorno
+function getRecentNDVI(fieldId, days = 14) {
+  const data = dataCache.ndvi[fieldId];
+  if (!data || data.length === 0) return [];
+  const sorted = [...data].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const lastDateStr = sorted[0].date;
+  if (!lastDateStr) return [];
+  const lastDate = new Date(lastDateStr);
+  const cutoff = new Date(lastDate.getTime() - days * 24 * 60 * 60 * 1000)
+    .toISOString().slice(0, 10);
+  return data.filter(r => r.date >= cutoff && r.mean_ndvi !== null);
+}
+
+// Ultimo NDWI valido (solo da S2)
+function getLatestNDWI(fieldId) {
+  const data = dataCache.ndvi[fieldId];
+  if (!data) return null;
+  const s2 = data.filter(r => r.source === 'sentinel-2' && r.mean_ndwi !== null);
+  if (s2.length === 0) return null;
+  return s2.sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
+}
+
+// Meteo ultimi 7gg basato su ultima data CSV (no su today)
+function getRecentMeteo(fieldId, days = 7) {
+  const data = dataCache.meteo[fieldId];
+  if (!data || data.length === 0) return { rain: null, temp: null, lastDate: null };
+  const sorted = [...data].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const lastDateStr = sorted[0].date;
+  if (!lastDateStr) return { rain: null, temp: null, lastDate: null };
+  const lastDate = new Date(lastDateStr);
+  const cutoff = new Date(lastDate.getTime() - days * 24 * 60 * 60 * 1000)
+    .toISOString().slice(0, 10);
+  const recent = data.filter(r => r.date >= cutoff && r.date <= lastDateStr);
+  if (recent.length === 0) return { rain: null, temp: null, lastDate: lastDateStr };
+  const rain = recent.reduce((s, r) => s + (r.rain_mm || 0), 0);
+  const temp = recent.reduce((s, r) => s + (r.temp_c || 0), 0) / recent.length;
+  return { rain, temp, lastDate: lastDateStr };
+}
+
+// Calcola stato sintetico: ottimo / monitora / critico / recupero
+function computeFieldStatus(fieldId) {
+  const recent = getRecentNDVI(fieldId, 14);
+  if (recent.length === 0) return 'sconosciuto';
+
+  const sorted = recent.sort((a, b) => a.date.localeCompare(b.date));
+  const latest = sorted[sorted.length - 1].mean_ndvi;
+
+  // Trend: confronto ultime 3 osservazioni vs precedenti 3
+  let trend = 0;
+  if (sorted.length >= 4) {
+    const recentVals = sorted.slice(-3).map(r => r.mean_ndvi);
+    const prevVals = sorted.slice(-6, -3).map(r => r.mean_ndvi);
+    if (prevVals.length > 0) {
+      const recMean = recentVals.reduce((s, v) => s + v, 0) / recentVals.length;
+      const prevMean = prevVals.reduce((s, v) => s + v, 0) / prevVals.length;
+      trend = recMean - prevMean;
+    }
+  }
+
+  // Logica decisione
+  if (latest < 0.30) return 'critico';
+  if (latest < 0.50 && trend < -0.05) return 'critico';
+  if (latest < 0.55 && trend < 0) return 'monitora';
+  if (latest >= 0.45 && trend > 0.05) return 'recupero';
+  if (latest >= 0.65) return 'ottimo';
+  return 'monitora';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SOGLIE → PAROLE
+   ═══════════════════════════════════════════════════════════════ */
+
+function ndviToWord(v) {
+  if (v === null || v === undefined) return { word: 'n/d', cls: '' };
+  if (v >= 0.70) return { word: 'Rigogliosa', cls: 'good' };
+  if (v >= 0.55) return { word: 'Buona',      cls: 'good' };
+  if (v >= 0.40) return { word: 'Discreta',   cls: 'warn' };
+  if (v >= 0.25) return { word: 'Scarsa',     cls: 'bad'  };
+  return { word: 'Critica', cls: 'bad' };
+}
+
+function ndwiToWord(v) {
+  if (v === null || v === undefined) return { word: 'n/d', cls: '' };
+  if (v >= 0.40) return { word: 'Abbondante', cls: 'good' };
+  if (v >= 0.25) return { word: 'Buona',      cls: 'good' };
+  if (v >= 0.15) return { word: 'Discreta',   cls: 'warn' };
+  if (v >= 0.05) return { word: 'Scarsa',     cls: 'bad'  };
+  return { word: 'Critica', cls: 'bad' };
+}
+
+function rainToWord(mm) {
+  if (mm === null || mm === undefined) return { word: 'n/d', cls: '' };
+  if (mm >= 30) return { word: 'Abbondante', cls: 'good' };
+  if (mm >= 15) return { word: 'Normale',    cls: 'good' };
+  if (mm >= 5)  return { word: 'Poca',       cls: 'warn' };
+  if (mm >= 1)  return { word: 'Molto poca', cls: 'bad'  };
+  return { word: 'Nulla', cls: 'bad' };
+}
+
+const STATE_LABELS = {
+  ottimo:      { dot: '',       text: 'Ottimo',         color: 'green',  title: 'In ottime condizioni' },
+  monitora:    { dot: 'yellow', text: 'Da monitorare',  color: 'yellow', title: 'Da monitorare' },
+  critico:     { dot: 'red',    text: 'Critico',        color: 'red',    title: 'Stato critico' },
+  recupero:    { dot: '',       text: 'In recupero',    color: 'green',  title: 'In recupero' },
+  sconosciuto: { dot: 'rest',   text: 'Senza dati',     color: 'yellow', title: 'Dati insufficienti' },
+};
+
+const ANIMAL_EMOJI = { bovino: '🐄', ovino: '🐑', caprino: '🐐', equino: '🐎' };
+const STATUS_TEXT = { occupato: 'in pascolo', libero: 'libero', riposo: 'a riposo' };
+
+/* ═══════════════════════════════════════════════════════════════
+   VERDETTO DEL GIORNO
+   ═══════════════════════════════════════════════════════════════ */
+
+function generateVerdict() {
+  const states = FIELDS.map(f => dataCache.fieldStatus[f.id] || 'sconosciuto');
+  const optimal = states.filter(s => s === 'ottimo').length;
+  const monitor = states.filter(s => s === 'monitora').length;
+  const critical = states.filter(s => s === 'critico').length;
+  const recovery = states.filter(s => s === 'recupero').length;
+  const total = states.length;
+
+  const optimalPct = optimal / total;
+
+  // Lista nomi pascoli per stato
+  const optimalNames = FIELDS.filter(f => dataCache.fieldStatus[f.id] === 'ottimo').map(f => f.name);
+  const monitorNames = FIELDS.filter(f => dataCache.fieldStatus[f.id] === 'monitora').map(f => f.name);
+  const criticalNames = FIELDS.filter(f => dataCache.fieldStatus[f.id] === 'critico').map(f => f.name);
+  const recoveryNames = FIELDS.filter(f => dataCache.fieldStatus[f.id] === 'recupero').map(f => f.name);
+
+  let color, title, body;
+
+  if (critical > 0) {
+    color = 'red';
+    title = 'Situazione critica';
+    body = `<strong>${critical} pascol${critical > 1 ? 'i' : 'o'} in difficoltà</strong>`;
+    if (criticalNames.length > 0) body += ` (${criticalNames.join(', ')})`;
+    body += ' — vegetazione bassa e/o stress idrico marcato. Valuta integrazione foraggio o spostamento immediato.';
+  } else if (optimalPct >= 0.7) {
+    color = 'green';
+    title = 'Giornata favorevole';
+    if (optimalNames.length > 0) {
+      body = `<strong>${optimal} pascol${optimal > 1 ? 'i' : 'o'} pront${optimal > 1 ? 'i' : 'o'}</strong> per la mandria`;
+      if (optimalNames.length <= 3) body += `: ${optimalNames.join(', ')}.`;
+      else body += '.';
+    } else {
+      body = '<strong>Pascoli in buona forma.</strong>';
+    }
+    if (recovery > 0) {
+      body += ` ${recovery} ${recovery > 1 ? 'in recupero' : 'sta recuperando'} dopo sfalcio o pascolamento`;
+      if (recoveryNames.length > 0 && recoveryNames.length <= 2) body += ` (${recoveryNames.join(', ')})`;
+      body += '.';
+    }
+  } else if (optimalPct >= 0.4 || monitor > 0) {
+    color = 'yellow';
+    title = 'Da monitorare';
+    body = `<strong>${monitor} pascol${monitor > 1 ? 'i' : 'o'} in calo</strong>`;
+    if (monitorNames.length > 0 && monitorNames.length <= 3) body += ` (${monitorNames.join(', ')})`;
+    body += '.';
+    if (optimal > 0) body += ` ${optimal} pascol${optimal > 1 ? 'i' : 'o'} ancora in buone condizioni.`;
+    body += ' Tieni d\'occhio i prossimi giorni.';
+  } else {
+    color = 'yellow';
+    title = 'Stato medio';
+    body = `Vegetazione complessivamente discreta. ${optimal} ottimi, ${monitor} da monitorare.`;
+  }
+
+  // Aggiunta meteo: se piove >5mm nei prossimi 3 giorni
+  const forecast = dataCache.forecast[FIELDS[0].id] || [];
+  const next3rain = forecast.slice(1, 4).reduce((s, d) => s + (d.rain || 0), 0);
+  if (next3rain >= 8) {
+    body += ` Nei prossimi giorni <strong>${Math.round(next3rain)} mm di pioggia</strong>`;
+    body += ' — rimanda sfalci e mantieni gli animali al coperto se possibile.';
+  } else if (next3rain < 2 && (monitor > 0 || critical > 0)) {
+    body += ' Pioggia scarsa nei prossimi giorni — attenzione allo stress idrico.';
+  }
+
+  // Avviso se i dati NDVI sono datati (>10gg = Sentinel-2 ostacolato)
+  if (dataCache.lastUpdate) {
+    const last = new Date(dataCache.lastUpdate);
+    const diff = Math.floor((new Date() - last) / 86400000);
+    if (diff >= 10) {
+      body += ` <em style="color:var(--ink-faint);font-size:13px;display:block;margin-top:8px;">Dati satellitari fermi a ${diff} giorni fa — Sentinel-2 ostacolato dalle nuvole.</em>`;
+    }
+  }
+
+  return { color, title, body };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FORECAST METEO LIVE (Open-Meteo)
+   ═══════════════════════════════════════════════════════════════ */
+
+const WMO_ICONS = {
+  0: '☀️', 1: '🌤', 2: '⛅', 3: '☁️',
+  45: '🌫', 48: '🌫',
+  51: '🌦', 53: '🌦', 55: '🌧',
+  61: '🌧', 63: '🌧', 65: '🌧',
+  71: '🌨', 73: '🌨', 75: '❄️',
+  80: '🌦', 81: '🌧', 82: '⛈',
+  95: '⛈', 96: '⛈', 99: '⛈',
+};
+
+async function fetchForecast(fieldId) {
+  const f = FIELDS.find(x => x.id === fieldId);
+  if (!f) return [];
+
+  const lat = f.coords.reduce((s, c) => s + c[1], 0) / f.coords.length;
+  const lon = f.coords.reduce((s, c) => s + c[0], 0) / f.coords.length;
+
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe/Rome&forecast_days=7`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('Forecast HTTP ' + r.status);
+    const json = await r.json();
+    const d = json.daily || {};
+    const dates = d.time || [];
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const days = dates.map((dt, i) => {
+      const dateObj = new Date(dt);
+      const delta = Math.round((dateObj - today) / 86400000);
+      const dayLabels = ['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+      let label;
+      if (delta === 0) label = 'Oggi';
+      else if (delta === 1) label = 'Domani';
+      else label = dayLabels[dateObj.getDay()];
+      return {
+        label,
+        icon: WMO_ICONS[d.weathercode[i]] || '🌡',
+        tMax: Math.round(d.temperature_2m_max[i]),
+        tMin: Math.round(d.temperature_2m_min[i]),
+        rain: Math.round((d.precipitation_sum[i] || 0) * 10) / 10,
+      };
+    });
+    return days;
+  } catch (e) {
+    console.warn('Forecast failed:', e.message);
+    return [];
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDERING
+   ═══════════════════════════════════════════════════════════════ */
+
+function updateGreeting() {
+  const now = new Date();
+  const h = now.getHours();
+  const greetText = document.getElementById('greet-text');
+  const greetIcon = document.getElementById('greet-icon');
+  const greetTime = document.getElementById('greet-time');
+  const greetSub  = document.getElementById('greet-subtitle');
+
+  let greet, icon, sub;
+  if (h >= 5 && h < 12)       { greet = 'Buongiorno';    icon = '☀️'; sub = 'Mattinata serena sui pascoli'; }
+  else if (h >= 12 && h < 18) { greet = 'Buon pomeriggio'; icon = '🌤'; sub = 'Aggiornamento del pomeriggio'; }
+  else if (h >= 18 && h < 22) { greet = 'Buonasera';     icon = '🌅'; sub = 'Riepilogo della giornata'; }
+  else                         { greet = 'Buonanotte';    icon = '🌙'; sub = 'Riepilogo notturno'; }
+
+  greetText.textContent = greet;
+  greetIcon.textContent = icon;
+  greetSub.textContent  = sub;
+
+  const days = ['DOM','LUN','MAR','MER','GIO','VEN','SAB'];
+  const months = ['GEN','FEB','MAR','APR','MAG','GIU','LUG','AGO','SET','OTT','NOV','DIC'];
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  greetTime.textContent = `${hh}:${mm} · ${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+}
+
+function renderVerdict() {
+  const v = generateVerdict();
+  const card = document.getElementById('verdict-card');
+  card.classList.remove('green', 'yellow', 'red');
+  card.classList.add(v.color);
+  document.getElementById('verdict-title').textContent = v.title;
+  document.getElementById('verdict-body').innerHTML = v.body;
+}
+
+function renderRecap() {
+  // Conta pascoli e capi
+  const totalFields = FIELDS.length;
+  let totalCapi = 0;
+  FIELDS.forEach(f => {
+    const s = getFieldState(f.id);
+    if (s.status === 'occupato') totalCapi += s.capi || 0;
+  });
+  document.getElementById('recap-pascoli').textContent = totalFields;
+  document.getElementById('recap-capi').textContent = totalCapi;
+
+  // Stato medio
+  const states = FIELDS.map(f => dataCache.fieldStatus[f.id]);
+  const optimal = states.filter(s => s === 'ottimo' || s === 'recupero').length;
+  const critical = states.filter(s => s === 'critico').length;
+  const stateEl = document.getElementById('recap-state');
+  stateEl.classList.remove('yellow', 'red');
+  if (critical > 0) {
+    stateEl.classList.add('red');
+    stateEl.textContent = 'Critico';
+  } else if (optimal / states.length >= 0.7) {
+    stateEl.textContent = 'Ottimo';
+  } else {
+    stateEl.classList.add('yellow');
+    stateEl.textContent = 'Da monitorare';
+  }
+}
+
+function renderWeatherStrip(forecast) {
+  const row = document.getElementById('weather-row');
+  if (!forecast || forecast.length === 0) {
+    row.innerHTML = '<div style="padding:20px;color:var(--ink-faint);font-size:12px;">Previsioni non disponibili</div>';
+    return;
+  }
+  row.innerHTML = forecast.map((d, i) => `
+    <div class="weather-day ${i === 0 ? 'today' : ''}">
+      <div class="weather-day-name">${d.label}</div>
+      <div class="weather-day-icon">${d.icon}</div>
+      <div class="weather-day-temp">${d.tMax}°</div>
+      <div class="weather-day-temp-min">${d.tMin}°</div>
+      <div class="weather-day-rain ${d.rain === 0 ? 'empty' : ''}">${d.rain === 0 ? '—' : d.rain + 'mm'}</div>
+    </div>
+  `).join('');
+
+  // Sottotitolo: indica zona se i campi sono sparpagliati su area larga
+  const sub = document.getElementById('weather-subtitle');
+  if (sub) {
+    if (FIELDS.length < 2) {
+      sub.textContent = '';
+    } else {
+      const maxDist = maxFieldDistanceKm();
+      const refField = FIELDS[0];
+      if (maxDist < 5) {
+        sub.textContent = `Previsioni valide per tutta la zona`;
+      } else {
+        sub.innerHTML = `Previsioni della zona di <strong>${refField.name}</strong> · altri campi a fino a ${Math.round(maxDist)} km possono avere meteo diverso`;
+      }
+    }
+  }
+}
+
+function maxFieldDistanceKm() {
+  if (FIELDS.length < 2) return 0;
+  let max = 0;
+  for (let i = 0; i < FIELDS.length; i++) {
+    for (let j = i + 1; j < FIELDS.length; j++) {
+      const d = haversineKm(FIELDS[i].lat, FIELDS[i].lon, FIELDS[j].lat, FIELDS[j].lon);
+      if (d > max) max = d;
+    }
+  }
+  return max;
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function renderAlerts() {
+  const container = document.getElementById('alerts-container');
+  const alerts = [];
+
+  // Allerte: campi in calo o critici, campi quasi pronti dal recupero
+  FIELDS.forEach(f => {
+    const status = dataCache.fieldStatus[f.id];
+    if (status === 'critico') {
+      alerts.push({
+        type: 'critical',
+        icon: '⚠',
+        text: `<strong>${f.name} in difficoltà</strong>. Vegetazione molto bassa. Valuta integrazione foraggio o spostamento.`,
+        fieldId: f.id,
+      });
+    } else if (status === 'monitora') {
+      // Calcola trend dettagliato
+      const recent = getRecentNDVI(f.id, 14);
+      if (recent.length >= 4) {
+        const sorted = recent.sort((a, b) => a.date.localeCompare(b.date));
+        const latest = sorted[sorted.length - 1].mean_ndvi;
+        const earlier = sorted[0].mean_ndvi;
+        const dropPct = ((earlier - latest) / earlier) * 100;
+        if (dropPct >= 8) {
+          alerts.push({
+            type: '',
+            icon: '⚠',
+            text: `<strong>${f.name} in calo</strong>. Vegetazione scesa del ${Math.round(dropPct)}% in 2 settimane. Tieni sotto controllo.`,
+            fieldId: f.id,
+          });
+        }
+      }
+    } else if (status === 'recupero') {
+      alerts.push({
+        type: 'info',
+        icon: '⏱',
+        text: `<strong>${f.name} sta recuperando</strong>. Vegetazione in ripresa, presto pronto per il prossimo turno.`,
+        fieldId: f.id,
+      });
+    }
+  });
+
+  // Allerta pioggia futura se relevante
+  const forecast = dataCache.forecast[FIELDS[0].id] || [];
+  const tomorrowRain = forecast[1]?.rain || 0;
+  if (tomorrowRain >= 10) {
+    alerts.push({
+      type: 'info',
+      icon: '🌧',
+      text: `<strong>Domani pioggia importante</strong> (~${tomorrowRain} mm). Rimanda eventuali sfalci.`,
+    });
+  }
+
+  if (alerts.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:18px;color:var(--ink-faint);font-size:13px;">Nessuna allerta. Tutto sotto controllo.</div>';
+    return;
+  }
+
+  container.innerHTML = alerts.slice(0, 4).map(a => `
+    <div class="alert-card ${a.type}" ${a.fieldId ? `onclick="openField('${a.fieldId}')"` : ''}>
+      <div class="alert-icon">${a.icon}</div>
+      <div class="alert-text">${a.text}</div>
+    </div>
+  `).join('');
+}
+
+function renderFreshness() {
+  const el = document.getElementById('data-freshness');
+  if (!dataCache.lastUpdate) {
+    el.textContent = 'DATI · NESSUN AGGIORNAMENTO RECENTE';
+    return;
+  }
+  const last = new Date(dataCache.lastUpdate);
+  const now = new Date();
+  const diffDays = Math.floor((now - last) / 86400000);
+  let label;
+  if (diffDays === 0) label = 'OGGI';
+  else if (diffDays === 1) label = 'IERI';
+  else if (diffDays < 7) label = `${diffDays} GIORNI FA`;
+  else label = `${Math.floor(diffDays / 7)} SETTIMANE FA`;
+  el.textContent = `DATI · SENTINEL-2 + ML · AGGIORNATO ${label}`;
+}
+
+function renderFieldsList() {
+  const list = document.getElementById('fields-list');
+  document.getElementById('fields-count').textContent = `${FIELDS.length} PASCOLI`;
+  list.innerHTML = FIELDS.map(f => {
+    const status = dataCache.fieldStatus[f.id] || 'sconosciuto';
+    const st = STATE_LABELS[status];
+    const fs = getFieldState(f.id);
+    const occ = fs.status === 'occupato'
+      ? `${ANIMAL_EMOJI[fs.animal]} ${fs.capi} capi`
+      : STATUS_TEXT[fs.status];
+    return `
+      <div class="field-card" onclick="openField('${f.id}')">
+        <div class="field-status-dot ${st.dot}"></div>
+        <div class="field-info">
+          <div class="field-name">${f.name}</div>
+          <div class="field-meta">
+            <span>${st.text}</span>
+            <span class="field-meta-dot"></span>
+            <span>${occ}</span>
+          </div>
+        </div>
+        <div class="field-arrow">›</div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAPPA SATELLITE
+   ═══════════════════════════════════════════════════════════════ */
+
+function initMap() {
+  if (mapInstance) {
+    mapInstance.invalidateSize();
+    return;
+  }
+
+  const allCoords = FIELDS.flatMap(f => f.coords).map(c => [c[1], c[0]]);
+  const bounds = L.latLngBounds(allCoords);
+
+  mapInstance = L.map('map', {
+    zoomControl: true,
+    attributionControl: true,
+  }).fitBounds(bounds, { padding: [20, 20] });
+
+  // VISTA SATELLITE ESRI (alta qualità, gratuita per uso non commerciale)
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © Esri',
+    maxZoom: 19,
+  }).addTo(mapInstance);
+
+  // Etichette nomi luoghi sopra (opzionale, dà contesto)
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    opacity: 0.6,
+  }).addTo(mapInstance);
+
+  FIELDS.forEach(f => {
+    const status = dataCache.fieldStatus[f.id] || 'sconosciuto';
+    const st = STATE_LABELS[status];
+    const color = st.dot === 'yellow' ? '#e8c878'
+                : st.dot === 'red'    ? '#e08868'
+                : st.dot === 'rest'   ? '#c0b9a8'
+                : '#a3c97a';
+    const borderColor = st.dot === 'yellow' ? '#b87520'
+                     : st.dot === 'red'    ? '#a83920'
+                     : st.dot === 'rest'   ? '#948a78'
+                     : '#4a6e2a';
+
+    const latlngs = f.coords.map(c => [c[1], c[0]]);
+
+    // Poligono visibile (più opaco per visibilità su satellite scuro)
+    L.polygon(latlngs, {
+      color: borderColor,
+      weight: 3,
+      fillColor: color,
+      fillOpacity: 0.45,
+      smoothFactor: 1.5,
+    }).addTo(mapInstance);
+
+    // Hit area estesa per facilitare tap
+    L.polygon(latlngs, {
+      color: 'transparent',
+      weight: 28,
+      opacity: 0,
+      fillColor: 'transparent',
+      fillOpacity: 0,
+      interactive: true,
+    })
+      .addTo(mapInstance)
+      .on('click', () => openField(f.id));
+
+    // Label centrata con sfondo chiaro
+    const centerLat = latlngs.reduce((s, c) => s + c[0], 0) / latlngs.length;
+    const centerLng = latlngs.reduce((s, c) => s + c[1], 0) / latlngs.length;
+    L.marker([centerLat, centerLng], {
+      icon: L.divIcon({
+        className: 'field-label',
+        html: `<div style="background:rgba(255,255,255,0.96);border:1.5px solid ${borderColor};color:#1a1814;padding:3px 8px;border-radius:8px;font-family:'DM Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.04em;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,0.25);">${f.name.replace('Pascolo ', 'P.')}</div>`,
+        iconSize: [40, 18],
+        iconAnchor: [20, 9],
+      }),
+      interactive: false,
+    }).addTo(mapInstance);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DETTAGLIO CAMPO
+   ═══════════════════════════════════════════════════════════════ */
+
+function openField(id) {
+  currentFieldId = id;
+  const f = FIELDS.find(x => x.id === id);
+  if (!f) return;
+
+  const status = dataCache.fieldStatus[id] || 'sconosciuto';
+  const st = STATE_LABELS[status];
+  const fs = getFieldState(id);
+
+  document.getElementById('det-name').textContent = f.name;
+  document.getElementById('det-meta').textContent =
+    `${f.quota} M · ESPOSIZIONE ${f.slope.toUpperCase()} · ${f.area} HA`;
+
+  // Verdetto
+  const verdict = document.getElementById('det-verdict');
+  verdict.classList.remove('green', 'yellow', 'red');
+  verdict.classList.add(st.color);
+  document.getElementById('det-verdict-title').textContent = st.title;
+  document.getElementById('det-verdict-summary').innerHTML = generateFieldVerdictSummary(id);
+
+  // KPI
+  renderFieldKPIs(id);
+
+  // Mgmt
+  document.getElementById('capi-num').textContent = fs.capi || 0;
+  document.querySelectorAll('.animal-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.animal === fs.animal);
+  });
+  document.querySelectorAll('.status-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.status === fs.status);
+  });
+  document.getElementById('animal-section').classList.toggle('active', fs.status === 'occupato');
+
+  // Carico
+  renderCarico(id);
+
+  // Stress
+  renderStress(id);
+
+  // Recovery card (solo se in recupero)
+  renderRecovery(id);
+
+  // Freshness
+  const lastNdvi = getLatestNDVI(id);
+  if (lastNdvi) {
+    const d = new Date(lastNdvi.date);
+    const today = new Date();
+    const diff = Math.floor((today - d) / 86400000);
+    const src = lastNdvi.source === 'sentinel-2' ? 'SENTINEL-2' : 'STIMA ML';
+    let ago;
+    if (diff === 0) ago = 'OGGI';
+    else if (diff === 1) ago = 'IERI';
+    else if (diff < 7) ago = `${diff} GIORNI FA`;
+    else if (diff < 14) ago = `OLTRE 1 SETTIMANA FA`;
+    else ago = `OLTRE 2 SETTIMANE FA`;
+    document.getElementById('detail-freshness').textContent =
+      `ULTIMA RILEVAZIONE · ${src} · ${ago}`;
+  }
+
+  showPage('page-dettaglio');
+  setTimeout(() => initChart(id), 200);
+}
+
+function generateFieldVerdictSummary(fieldId) {
+  const status = dataCache.fieldStatus[fieldId];
+  const latest = getLatestNDVI(fieldId);
+  const meteo = getRecentMeteo(fieldId, 7);
+
+  const ndviV = latest ? latest.mean_ndvi : null;
+  const ndvi = ndviToWord(ndviV);
+
+  let summary = '';
+
+  if (status === 'ottimo') {
+    summary = `Vegetazione <strong>${ndvi.word.toLowerCase()}</strong>, condizioni ideali per il pascolo. `;
+    if (meteo.rain && meteo.rain < 5) summary += 'Pioggia scarsa nelle ultime settimane, ma il pascolo regge bene.';
+    else summary += 'Il pascolo è in piena forma.';
+  } else if (status === 'monitora') {
+    summary = `Vegetazione in <strong>leggero calo</strong>`;
+    if (meteo.rain !== null && meteo.rain < 10) summary += ' e poca pioggia nelle ultime settimane';
+    summary += '. Se non piove, valuta spostamento <strong>entro 3-4 giorni</strong>.';
+  } else if (status === 'critico') {
+    summary = `Vegetazione <strong>molto bassa</strong> e stress evidente. Considera integrazione foraggio o spostamento <strong>immediato</strong>.`;
+  } else if (status === 'recupero') {
+    summary = `Vegetazione in <strong>ripresa</strong> dopo sfalcio o pascolamento. Lascia ancora qualche giorno prima di riutilizzarlo.`;
+  } else {
+    summary = `Dati insufficienti per una valutazione affidabile. Riprova nei prossimi giorni.`;
+  }
+  return summary;
+}
+
+function renderFieldKPIs(fieldId) {
+  const latest = getLatestNDVI(fieldId);
+  const latestNDWI = getLatestNDWI(fieldId);
+  const meteo = getRecentMeteo(fieldId, 7);
+
+  const ndviV = latest ? latest.mean_ndvi : null;
+  const ndwiV = latestNDWI ? latestNDWI.mean_ndwi : null;
+  const rainV = meteo.rain;
+  const tempV = meteo.temp;
+
+  const ndvi = ndviToWord(ndviV);
+  const ndwi = ndwiToWord(ndwiV);
+  const rain = rainToWord(rainV);
+
+  // Trend NDVI: prova con finestra 14gg, poi estendi a 30gg se non basta
+  let recent = getRecentNDVI(fieldId, 14);
+  if (recent.length < 4) recent = getRecentNDVI(fieldId, 30);
+
+  let trendLabel = '';
+  if (recent.length >= 4) {
+    const sorted = recent.sort((a, b) => a.date.localeCompare(b.date));
+    const latest_v = sorted[sorted.length - 1].mean_ndvi;
+    const earlier_v = sorted[0].mean_ndvi;
+    const dropPct = ((earlier_v - latest_v) / earlier_v) * 100;
+    if (dropPct > 5) trendLabel = `IN CALO · ${Math.round(dropPct)}%`;
+    else if (dropPct < -5) trendLabel = `IN SALITA · ${Math.round(-dropPct)}%`;
+    else trendLabel = 'STABILE';
+  } else if (recent.length > 0) {
+    trendLabel = 'OSSERVAZIONI LIMITATE';
+  } else {
+    trendLabel = 'NESSUN DATO RECENTE';
+  }
+
+  const grid = document.getElementById('kpi-grid');
+  grid.innerHTML = `
+    <div class="kpi-card">
+      <div>
+        <div class="kpi-label"><span class="kpi-icon">🌱</span>Vegetazione</div>
+        <div class="kpi-word ${ndvi.cls}">${ndvi.word}</div>
+      </div>
+      <div class="kpi-detail">${trendLabel}</div>
+    </div>
+    <div class="kpi-card">
+      <div>
+        <div class="kpi-label"><span class="kpi-icon">💧</span>Umidità</div>
+        <div class="kpi-word ${ndwi.cls}">${ndwi.word}</div>
+      </div>
+      <div class="kpi-detail">${ndwiV !== null ? `NDWI ${ndwiV.toFixed(2)}` : 'N/D'}</div>
+    </div>
+    <div class="kpi-card">
+      <div>
+        <div class="kpi-label"><span class="kpi-icon">🌧</span>Pioggia 7 gg</div>
+        <div class="kpi-word ${rain.cls}">${rain.word}</div>
+      </div>
+      <div class="kpi-detail">${rainV !== null ? Math.round(rainV) + ' MM' : 'N/D'}</div>
+    </div>
+    <div class="kpi-card temp-card">
+      <div>
+        <div class="kpi-label"><span class="kpi-icon">🌡</span>Temperatura</div>
+        <div class="kpi-word">${tempV !== null ? Math.round(tempV) : '—'}<span class="kpi-unit">°C</span></div>
+      </div>
+      <div class="kpi-detail">${tempV !== null ? 'MEDIA 7 GG' : 'N/D'}</div>
+    </div>
+  `;
+}
+
+const UBA_FACTOR = { bovino: 1.0, ovino: 0.15, caprino: 0.15, equino: 1.0 };
+
+function renderCarico(fieldId) {
+  const f = FIELDS.find(x => x.id === fieldId);
+  const fs = getFieldState(fieldId);
+  const uba = (fs.capi || 0) * (UBA_FACTOR[fs.animal] || 1.0);
+  const ubaHa = (uba / (f?.area || 1)).toFixed(2);
+  const ubaValEl = document.getElementById('carico-value');
+  const ubaSubEl = document.getElementById('carico-sub');
+  if (fs.status !== 'occupato') {
+    ubaValEl.innerHTML = '0.0<span class="metric-mini-unit">UBA/ha</span>';
+    ubaSubEl.textContent = 'Campo libero';
+  } else {
+    ubaValEl.innerHTML = `${ubaHa}<span class="metric-mini-unit">UBA/ha</span>`;
+    const ratio = parseFloat(ubaHa);
+    if (ratio > 2.5) ubaSubEl.textContent = 'Carico elevato';
+    else if (ratio < 0.5) ubaSubEl.textContent = 'Carico basso';
+    else ubaSubEl.textContent = 'Ottimale per il campo';
+  }
+}
+
+function renderStress(fieldId) {
+  const latest = getLatestNDVI(fieldId);
+  const latestNDWI = getLatestNDWI(fieldId);
+  const meteo = getRecentMeteo(fieldId, 7);
+
+  let score = 0;
+  if (latest && latest.mean_ndvi !== null) {
+    if (latest.mean_ndvi < 0.45) score += 2;
+    else if (latest.mean_ndvi < 0.60) score += 1;
+  }
+  if (latestNDWI && latestNDWI.mean_ndwi !== null) {
+    if (latestNDWI.mean_ndwi < 0.10) score += 2;
+    else if (latestNDWI.mean_ndwi < 0.20) score += 1;
+  }
+  if (meteo.rain !== null) {
+    if (meteo.rain < 5) score += 2;
+    else if (meteo.rain < 15) score += 1;
+  }
+
+  const label = score <= 2 ? 'Basso' : score <= 5 ? 'Medio' : 'Alto';
+  const color = score <= 2 ? 'green' : score <= 5 ? 'yellow' : 'red';
+  const colorCSS = color === 'green' ? 'var(--moss-dk)' : color === 'yellow' ? 'var(--amber-dk)' : 'var(--clay-dk)';
+
+  const valEl = document.getElementById('stress-value');
+  valEl.textContent = label;
+  valEl.style.color = colorCSS;
+
+  const dots = document.querySelectorAll('#stress-dots .stress-dot');
+  dots.forEach((d, i) => {
+    d.className = 'stress-dot';
+    if (i < Math.min(3, Math.ceil(score / 2))) d.classList.add('on', color);
+  });
+}
+
+function renderRecovery(fieldId) {
+  const status = dataCache.fieldStatus[fieldId];
+  const card = document.getElementById('recovery-section');
+  if (status !== 'recupero') {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+  const latest = getLatestNDVI(fieldId);
+  if (!latest) return;
+  const currentNDVI = latest.mean_ndvi;
+  const target = 0.65;
+  const progress = Math.min(100, Math.max(0, ((currentNDVI - 0.35) / (target - 0.35)) * 100));
+  // Stima giorni necessari (semplice modello lineare ~0.02/giorno in primavera)
+  const gap = target - currentNDVI;
+  const daysMin = Math.max(2, Math.round(gap / 0.03));
+  const daysMax = Math.max(3, Math.round(gap / 0.02));
+
+  document.getElementById('recovery-title').textContent = `Pronto in ${daysMin}-${daysMax} giorni`;
+  document.getElementById('recovery-detail').innerHTML =
+    `NDVI atteso sopra <strong>${target.toFixed(2)}</strong> in base al modello ML. Attualmente <strong>${currentNDVI.toFixed(2)}</strong>.`;
+  document.getElementById('recovery-fill').style.width = progress + '%';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GRAFICO STAGIONALE
+   ═══════════════════════════════════════════════════════════════ */
+
+function initChart(fieldId) {
+  const canvas = document.getElementById('seasonChart');
+  if (!canvas) return;
+  if (chartInstance) chartInstance.destroy();
+
+  const dataCurrent = dataCache.ndvi[fieldId] || [];
+  const dataPrev = dataCache.ndvi[`${fieldId}_prev`] || [];
+
+  // Aggrega per mese (media)
+  function aggregateByMonth(data) {
+    const months = {};
+    data.forEach(r => {
+      if (!r.date || r.mean_ndvi === null) return;
+      const month = r.date.slice(0, 7); // YYYY-MM
+      if (!months[month]) months[month] = { sum: 0, count: 0 };
+      months[month].sum += r.mean_ndvi;
+      months[month].count++;
+    });
+    return Object.keys(months).sort().map(k => ({
+      month: k,
+      mean: months[k].sum / months[k].count,
+    }));
+  }
+
+  const aggCurrent = aggregateByMonth(dataCurrent);
+  const aggPrev    = aggregateByMonth(dataPrev);
+
+  const monthNames = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  const labels = monthNames;
+
+  function fillMonths(agg, year) {
+    const arr = new Array(12).fill(null);
+    agg.forEach(a => {
+      const [y, m] = a.month.split('-');
+      if (parseInt(y) === year) arr[parseInt(m) - 1] = a.mean;
+    });
+    return arr;
+  }
+
+  const current = fillMonths(aggCurrent, CURRENT_YEAR);
+  const previous = fillMonths(aggPrev, CURRENT_YEAR - 1);
+
+  chartInstance = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: CURRENT_YEAR.toString(),
+          data: current,
+          borderColor: '#4a6e2a',
+          backgroundColor: 'rgba(74,110,42,0.10)',
+          borderWidth: 2.5, tension: 0.35, fill: true,
+          pointRadius: 3, pointBackgroundColor: '#4a6e2a',
+          pointBorderColor: '#fff', pointBorderWidth: 1.5,
+          spanGaps: true,
+        },
+        {
+          label: (CURRENT_YEAR - 1).toString(),
+          data: previous,
+          borderColor: '#c0b9a8', borderWidth: 1.5,
+          borderDash: [4, 4], tension: 0.35, fill: false,
+          pointRadius: 0, spanGaps: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1814',
+          titleFont: { family: 'DM Mono', size: 10 },
+          bodyFont: { family: 'Manrope', size: 12, weight: '600' },
+          padding: 10, cornerRadius: 8,
+          callbacks: {
+            label: (ctx) => ctx.parsed.y === null ? '' : `${ctx.dataset.label} · NDVI ${ctx.parsed.y.toFixed(2)}`,
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: false, min: 0.3, max: 0.85,
+          ticks: { color: '#948a78', font: { family: 'DM Mono', size: 10 }, stepSize: 0.2 },
+          grid: { color: 'rgba(230,226,212,0.6)' },
+          border: { display: false },
+        },
+        x: {
+          ticks: { color: '#948a78', font: { family: 'DM Mono', size: 10 } },
+          grid: { display: false }, border: { display: false },
+        },
+      },
+    },
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAVIGAZIONE
+   ═══════════════════════════════════════════════════════════════ */
+
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+}
+
+function goHome() {
+  showPage('page-home');
+  document.querySelectorAll('.nav-item')[0].classList.add('active');
+}
+
+function goCampi() {
+  showPage('page-campi');
+  document.querySelectorAll('.nav-item')[1].classList.add('active');
+  renderFieldsList();
+  setTimeout(initMap, 100);
+}
+
+function goPerche() {
+  if (!currentFieldId) return;
+  renderPerchePage(currentFieldId);
+  showPage('page-perche');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+}
+
+function goStorico() {
+  if (!currentFieldId) return;
+  renderStoricoPage(currentFieldId);
+  showPage('page-storico');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+}
+
+function goDettaglio() {
+  if (!currentFieldId) {
+    goCampi();
+    return;
+  }
+  showPage('page-dettaglio');
+  setTimeout(() => initChart(currentFieldId), 100);
+}
+
+function goMemoria() {
+  renderMemoriaPage();
+  showPage('page-memoria');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.nav-item')[2].classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SCHERMATA "SCOPRI PERCHÉ" — dettaglio tecnico
+   ═══════════════════════════════════════════════════════════════ */
+
+function renderPerchePage(fieldId) {
+  const f = FIELDS.find(x => x.id === fieldId);
+  if (!f) return;
+  document.getElementById('perche-name').textContent = f.name;
+
+  const latest = getLatestNDVI(fieldId);
+  const latestNDWI = getLatestNDWI(fieldId);
+  const meteo = getRecentMeteo(fieldId, 7);
+  const recent14 = getRecentNDVI(fieldId, 14);
+  const recent30 = getRecentNDVI(fieldId, 30);
+
+  const data = dataCache.ndvi[fieldId] || [];
+  const s2Count = data.filter(r => r.source === 'sentinel-2').length;
+  const mlCount = data.filter(r => r.source === 'sentinel-1-conformal').length;
+
+  // Calcolo trend dettagliato
+  let trendHTML = '';
+  let trendData = recent14;
+  if (trendData.length < 4) trendData = recent30;
+  if (trendData.length >= 4) {
+    const sorted = trendData.sort((a, b) => a.date.localeCompare(b.date));
+    const latestV = sorted[sorted.length - 1].mean_ndvi;
+    const earlierV = sorted[0].mean_ndvi;
+    const diff = latestV - earlierV;
+    const pct = (diff / earlierV) * 100;
+    const direction = pct > 5 ? 'in salita' : pct < -5 ? 'in calo' : 'stabile';
+    trendHTML = `
+      <div class="perche-meta">
+        Osservazioni periodo: <strong>${sorted.length}</strong><br>
+        Da <strong>${sorted[0].mean_ndvi.toFixed(2)}</strong> (${formatDate(sorted[0].date)})
+        a <strong>${latestV.toFixed(2)}</strong> (${formatDate(sorted[sorted.length-1].date)})<br>
+        Trend: <strong style="color:${pct > 5 ? 'var(--moss-dk)' : pct < -5 ? 'var(--clay-dk)' : 'var(--ink-mid)'}">${direction} · ${Math.abs(pct).toFixed(1)}%</strong>
+      </div>
+    `;
+  } else {
+    trendHTML = `<div class="perche-meta">Dati insufficienti per calcolare il trend</div>`;
+  }
+
+  // Confronto stagionale: NDVI medio mese corrente vs anno scorso stesso mese
+  const currentMonth = (latest ? new Date(latest.date).getMonth() : new Date().getMonth());
+  const currentYearData = data.filter(r =>
+    r.date && new Date(r.date).getMonth() === currentMonth && r.mean_ndvi !== null
+  );
+  const prevYearData = (dataCache.ndvi[`${fieldId}_prev`] || []).filter(r =>
+    r.date && new Date(r.date).getMonth() === currentMonth && r.mean_ndvi !== null
+  );
+  let stagioneHTML = '';
+  if (currentYearData.length > 0 && prevYearData.length > 0) {
+    const curAvg = currentYearData.reduce((s,r) => s + r.mean_ndvi, 0) / currentYearData.length;
+    const prevAvg = prevYearData.reduce((s,r) => s + r.mean_ndvi, 0) / prevYearData.length;
+    const diff = curAvg - prevAvg;
+    const better = diff > 0.03;
+    const worse = diff < -0.03;
+    stagioneHTML = `
+      <div class="perche-meta">
+        Media NDVI mese: <strong>${curAvg.toFixed(2)}</strong> (${currentYearData.length} obs)<br>
+        Stesso mese ${CURRENT_YEAR - 1}: <strong>${prevAvg.toFixed(2)}</strong> (${prevYearData.length} obs)<br>
+        <strong style="color:${better ? 'var(--moss-dk)' : worse ? 'var(--clay-dk)' : 'var(--ink-mid)'}">
+          ${better ? '↗' : worse ? '↘' : '→'} ${diff > 0 ? '+' : ''}${diff.toFixed(2)} punti
+          ${better ? 'sopra la media' : worse ? 'sotto la media' : 'in linea con la media'}
+        </strong>
+      </div>
+    `;
+  } else {
+    stagioneHTML = `<div class="perche-meta">Confronto annuale non disponibile</div>`;
+  }
+
+  // Ultima rilevazione + interval ML se applicabile
+  let lastObsHTML = '';
+  if (latest) {
+    const src = latest.source === 'sentinel-1-conformal' ? 'Stima ML' : 'Sentinel-2';
+    const d = new Date(latest.date);
+    const today = new Date();
+    const ageDays = Math.floor((today - d) / 86400000);
+
+    lastObsHTML = `
+      <div class="perche-value-big">${latest.mean_ndvi.toFixed(2)}</div>
+      <div class="perche-meta">
+        ${src} · ${formatDate(latest.date)} (${ageDays} giorni fa)
+      </div>
+    `;
+
+    if (latest.source === 'sentinel-1-conformal' &&
+        latest.ndvi_lower_90 !== null && latest.ndvi_upper_90 !== null) {
+      const lo = parseFloat(latest.ndvi_lower_90);
+      const up = parseFloat(latest.ndvi_upper_90);
+      const val = latest.mean_ndvi;
+      // Mappa range [0,1] su barra
+      const loPct = lo * 100;
+      const upPct = up * 100;
+      const valPct = val * 100;
+      const conf = latest.confidence || 'medium';
+      lastObsHTML += `
+        <div class="perche-interval">
+          <div class="perche-interval-label">Intervallo di confidenza 90% — ${conf}</div>
+          <div class="perche-interval-bar">
+            <div class="perche-interval-range" style="left:${loPct}%; right:${100-upPct}%;"></div>
+            <div class="perche-interval-marker" style="left:${valPct}%;"></div>
+          </div>
+          <div class="perche-interval-numbers">
+            <span>${lo.toFixed(2)}</span>
+            <span>${val.toFixed(2)}</span>
+            <span>${up.toFixed(2)}</span>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // Cronologia ultime osservazioni
+  const lastObs = [...data]
+    .filter(r => r.mean_ndvi !== null)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+    .slice(0, 5);
+
+  const timelineHTML = lastObs.map(r => {
+    const dotCls = r.source === 'sentinel-1-conformal' ? 'ml' : 's2';
+    const srcLabel = r.source === 'sentinel-1-conformal' ? 'Stima ML' : 'Sentinel-2';
+    const interval = r.source === 'sentinel-1-conformal' && r.ndvi_lower_90
+      ? ` <em>± [${parseFloat(r.ndvi_lower_90).toFixed(2)}–${parseFloat(r.ndvi_upper_90).toFixed(2)}]</em>` : '';
+    return `
+      <div class="timeline-item">
+        <div class="timeline-dot ${dotCls}"></div>
+        <div class="timeline-date">${formatDate(r.date)}</div>
+        <div class="timeline-content">
+          NDVI <strong>${r.mean_ndvi.toFixed(2)}</strong>${r.mean_ndwi !== null && r.mean_ndwi !== '' ? ` · NDWI ${parseFloat(r.mean_ndwi).toFixed(2)}` : ''}<br>
+          <em>${srcLabel}${interval}</em>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Composizione finale
+  const body = document.getElementById('perche-body');
+  body.innerHTML = `
+    <div class="perche-section">
+      <div class="perche-label">Ultima rilevazione</div>
+      ${lastObsHTML || '<div class="perche-meta">Nessun dato disponibile</div>'}
+    </div>
+
+    <div class="perche-section">
+      <div class="perche-label">Andamento ultimi 14-30 giorni</div>
+      ${trendHTML}
+    </div>
+
+    <div class="perche-section">
+      <div class="perche-label">Confronto con anno scorso</div>
+      ${stagioneHTML}
+    </div>
+
+    <div class="perche-section">
+      <div class="perche-label">Cronologia recente</div>
+      <div class="timeline">
+        ${timelineHTML || '<div class="perche-meta">Nessuna osservazione</div>'}
+      </div>
+    </div>
+
+    <div class="perche-section">
+      <div class="perche-label">Composizione dei dati</div>
+      <div class="perche-meta">
+        Osservazioni Sentinel-2: <strong>${s2Count}</strong><br>
+        Stime ML (Sentinel-1 + conformal): <strong>${mlCount}</strong><br>
+        Modello: <strong>Conformal Beta XGBoost v1.2</strong><br>
+        RMSE atteso: <strong>0.13</strong> · Coverage 90%: <strong>92.8%</strong>
+      </div>
+    </div>
+
+    <div class="perche-section">
+      <div class="perche-label">Topografia del campo</div>
+      <div class="perche-meta">
+        Quota: <strong>${f.quota} m</strong><br>
+        Esposizione: <strong>${f.slope}</strong><br>
+        Superficie: <strong>${f.area} ha</strong>
+      </div>
+    </div>
+  `;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  const months = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STORICO AZIONI — eventi gestionali
+   ═══════════════════════════════════════════════════════════════ */
+
+const EVENT_STORAGE_KEY = 'pascoli_events_v2';
+
+function loadEvents() {
+  try {
+    const stored = localStorage.getItem(EVENT_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch (e) {}
+  return {};
+}
+
+function saveEvents() {
+  try {
+    localStorage.setItem(EVENT_STORAGE_KEY, JSON.stringify(FIELD_EVENTS));
+  } catch (e) {}
+}
+
+const FIELD_EVENTS = loadEvents();
+
+function getFieldEvents(fieldId) {
+  if (!FIELD_EVENTS[fieldId]) FIELD_EVENTS[fieldId] = [];
+  return FIELD_EVENTS[fieldId];
+}
+
+const EVENT_META = {
+  add:    { label: 'Carico animali',      icon: '🐄', cls: 'add' },
+  move:   { label: 'Spostamento',         icon: '↗',  cls: 'move' },
+  cut:    { label: 'Sfalcio',             icon: '✂',  cls: 'cut' },
+  rest:   { label: 'A riposo',            icon: '⏸',  cls: 'rest' },
+  open:   { label: 'Riaperto',            icon: '✓',  cls: 'open' },
+  note:   { label: 'Nota',                icon: '✎',  cls: 'note' },
+  // Eventi generati automaticamente dall'app
+  occupy: { label: 'Carico animali (auto)',     icon: '🐄', cls: 'add' },
+  vacate: { label: 'Scarico animali (auto)',    icon: '⊖',  cls: 'move' },
+  pause:  { label: 'A riposo (auto)',           icon: '⏸',  cls: 'rest' },
+  reopen: { label: 'Riaperto (auto)',           icon: '✓',  cls: 'open' },
+  update: { label: 'Aggiornati capi (auto)',    icon: '◦',  cls: 'note' },
+};
+
+// Aggiunge un evento al log (usato sia da UI che da auto-log)
+function pushEvent(fieldId, type, detail) {
+  const events = getFieldEvents(fieldId);
+  events.push({
+    id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    type: type,
+    date: new Date().toISOString().slice(0, 10),
+    detail: detail || '',
+    createdAt: new Date().toISOString(),
+    auto: ['occupy','vacate','pause','reopen','update'].includes(type),
+  });
+  saveEvents();
+}
+
+// Coalescing del cambio capi: aspetta 3 secondi senza modifiche prima di
+// scrivere un singolo evento di tipo "update"
+const _capiDebounce = {};
+
+function scheduleCapiUpdate(fieldId, fromN, toN, animal) {
+  // Cancella timer pendente
+  if (_capiDebounce[fieldId]) {
+    clearTimeout(_capiDebounce[fieldId].timer);
+    // Mantieni il "from" originale del primo cambio della sessione
+    fromN = _capiDebounce[fieldId].fromN;
+  }
+  _capiDebounce[fieldId] = {
+    fromN,
+    timer: setTimeout(() => {
+      const finalN = getFieldState(fieldId).capi || 0;
+      if (finalN !== fromN) {
+        const animalLabel = ANIMAL_LABELS[animal] || animal;
+        pushEvent(fieldId, 'update', `Da ${fromN} a ${finalN} capi ${animalLabel}`);
+        if (currentFieldId === fieldId && document.getElementById('page-storico').classList.contains('active')) {
+          renderStoricoPage(fieldId);
+        }
+      }
+      delete _capiDebounce[fieldId];
+    }, 3000),
+  };
+}
+
+const ANIMAL_LABELS = {
+  bovino:  'bovini',
+  ovino:   'ovini',
+  caprino: 'caprini',
+  equino:  'equini',
+};
+
+function renderStoricoPage(fieldId) {
+  const f = FIELDS.find(x => x.id === fieldId);
+  if (!f) return;
+  document.getElementById('storico-name').textContent = f.name;
+
+  const events = getFieldEvents(fieldId);
+  const list = document.getElementById('history-list');
+
+  if (events.length === 0) {
+    list.innerHTML = `
+      <div class="history-empty">
+        <div class="history-empty-icon">📋</div>
+        <div>Nessuna azione registrata.<br>Tocca "Aggiungi azione" per iniziare.</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Ordina per createdAt DESC (più preciso della sola data)
+  const sorted = [...events].sort((a, b) => {
+    const ta = a.createdAt || a.date || '';
+    const tb = b.createdAt || b.date || '';
+    return tb.localeCompare(ta);
+  });
+
+  list.innerHTML = sorted.map(e => {
+    const meta = EVENT_META[e.type] || EVENT_META.note;
+    const detail = e.detail ? `<br>${escapeHTML(e.detail)}` : '';
+    // Mostra orario solo per eventi auto (più granulari) o se più eventi nella stessa data
+    let timeLabel = formatDate(e.date);
+    if (e.createdAt) {
+      const t = new Date(e.createdAt);
+      const hh = String(t.getHours()).padStart(2, '0');
+      const mm = String(t.getMinutes()).padStart(2, '0');
+      timeLabel = `${formatDate(e.date)} · ${hh}:${mm}`;
+    }
+    return `
+      <div class="history-event">
+        <div class="history-icon ${meta.cls}">${meta.icon}</div>
+        <div class="history-text">
+          <strong>${meta.label}</strong>${detail}
+          <div class="history-time">${timeLabel}</div>
+        </div>
+        <button class="history-delete" onclick="deleteEvent('${e.id}')" aria-label="Elimina">×</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function escapeHTML(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+let currentEventType = 'add';
+
+function openEventModal() {
+  if (!currentFieldId) return;
+  document.getElementById('event-modal').classList.add('active');
+  // Default data: oggi
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('event-date').value = today;
+  document.getElementById('event-detail').value = '';
+  // Reset selezione tipo
+  currentEventType = 'add';
+  document.querySelectorAll('.event-type-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.type === 'add');
+  });
+}
+
+function closeEventModal() {
+  document.getElementById('event-modal').classList.remove('active');
+}
+
+function saveEvent() {
+  if (!currentFieldId) return;
+  const dateInput = document.getElementById('event-date').value;
+  const detail = document.getElementById('event-detail').value.trim();
+  if (!dateInput) {
+    alert('Seleziona una data');
+    return;
+  }
+  const events = getFieldEvents(currentFieldId);
+  events.push({
+    id: 'evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    type: currentEventType,
+    date: dateInput,
+    detail: detail,
+    createdAt: new Date().toISOString(),
+  });
+  saveEvents();
+  closeEventModal();
+  renderStoricoPage(currentFieldId);
+}
+
+function deleteEvent(eventId) {
+  if (!currentFieldId) return;
+  if (!confirm('Eliminare questa azione?')) return;
+  FIELD_EVENTS[currentFieldId] = (FIELD_EVENTS[currentFieldId] || [])
+    .filter(e => e.id !== eventId);
+  saveEvents();
+  renderStoricoPage(currentFieldId);
+}
+
+// Listener per cambio tipo evento nel modal
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.event-type-btn');
+  if (btn) {
+    document.querySelectorAll('.event-type-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    currentEventType = btn.dataset.type;
+  }
+});
+
+// Chiudi modal toccando overlay
+document.addEventListener('click', e => {
+  if (e.target.id === 'event-modal') closeEventModal();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   MEMORIA STAGIONALE — placeholder fine stagione
+   ═══════════════════════════════════════════════════════════════ */
+
+function renderMemoriaPage() {
+  document.getElementById('memoria-year').textContent = String(CURRENT_YEAR);
+
+  const today = new Date();
+  const yearStart = new Date(CURRENT_YEAR, 0, 1);
+  const yearEnd = new Date(CURRENT_YEAR, 11, 31);
+  const totalDays = Math.floor((yearEnd - yearStart) / 86400000);
+  const elapsedDays = Math.floor((today - yearStart) / 86400000);
+  const progressPct = Math.min(100, Math.max(0, (elapsedDays / totalDays) * 100));
+
+  // Statistiche stagionali (live)
+  const totalFields = FIELDS.length;
+  let totalEvents = 0;
+  let totalCapi = 0;
+  let avgNdvi = 0;
+  let ndviCount = 0;
+
+  FIELDS.forEach(f => {
+    const events = getFieldEvents(f.id);
+    totalEvents += events.length;
+    const state = getFieldState(f.id);
+    if (state.status === 'occupato') totalCapi += state.capi || 0;
+    const data = dataCache.ndvi[f.id] || [];
+    data.forEach(r => {
+      if (r.mean_ndvi !== null && r.mean_ndvi !== undefined) {
+        avgNdvi += r.mean_ndvi;
+        ndviCount++;
+      }
+    });
+  });
+
+  if (ndviCount > 0) avgNdvi = avgNdvi / ndviCount;
+
+  const monthsLeft = Math.max(0, 11 - today.getMonth());
+
+  const content = document.getElementById('memoria-content');
+  content.innerHTML = `
+    <div class="memory-icon">🌾</div>
+    <div class="memory-title">
+      La tua stagione <em>${CURRENT_YEAR}</em><br>
+      è in corso
+    </div>
+    <div class="memory-subtitle">
+      A novembre avrai il riepilogo completo del tuo anno:
+      crescita dei pascoli, eventi gestionali, confronti stagionali.
+    </div>
+
+    <div class="memory-progress">
+      <div class="memory-progress-fill" style="width:${progressPct}%;"></div>
+    </div>
+    <div class="memory-progress-label">${Math.round(progressPct)}% DELL'ANNO COMPLETATO</div>
+
+    <div class="memory-stats">
+      <div class="memory-stat">
+        <div class="memory-stat-num">${totalFields}</div>
+        <div class="memory-stat-label">Pascoli</div>
+      </div>
+      <div class="memory-stat">
+        <div class="memory-stat-num">${totalEvents}</div>
+        <div class="memory-stat-label">Azioni</div>
+      </div>
+      <div class="memory-stat">
+        <div class="memory-stat-num">${avgNdvi > 0 ? avgNdvi.toFixed(2) : '—'}</div>
+        <div class="memory-stat-label">NDVI medio</div>
+      </div>
+    </div>
+
+    <div class="memory-cta">
+      ${monthsLeft === 0 ? 'PRONTA TRA POCO' : `MANCANO ~${monthsLeft} MESI`}
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GESTIONE STATO CAMPO (persistenza locale)
+   ═══════════════════════════════════════════════════════════════ */
+
+function setStatus(status) {
+  if (!currentFieldId) return;
+  const fs = getFieldState(currentFieldId);
+  const oldStatus = fs.status;
+  const oldCapi = fs.capi || 0;
+
+  document.querySelectorAll('.status-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.status === status);
+  });
+  document.getElementById('animal-section').classList.toggle('active', status === 'occupato');
+  fs.status = status;
+  if (status !== 'occupato') fs.capi = 0;
+  saveFieldState();
+
+  // Auto-log della transizione (solo se cambia davvero)
+  if (oldStatus !== status) {
+    if (status === 'occupato') {
+      pushEvent(currentFieldId, 'occupy', oldStatus === 'libero' ? 'Pascolo aperto al carico' : 'Ripreso pascolo');
+    } else if (status === 'riposo') {
+      const detail = oldCapi > 0 ? `Scaricati ${oldCapi} capi e messo a riposo` : 'Messo a riposo';
+      pushEvent(currentFieldId, 'pause', detail);
+    } else if (status === 'libero') {
+      const detail = oldCapi > 0 ? `Scaricati ${oldCapi} capi` : 'Reso libero';
+      pushEvent(currentFieldId, 'vacate', detail);
+    }
+  }
+
+  renderCarico(currentFieldId);
+  renderStress(currentFieldId);
+  document.getElementById('capi-num').textContent = fs.capi;
+}
+
+document.addEventListener('click', e => {
+  if (e.target.closest('.animal-btn')) {
+    const btn = e.target.closest('.animal-btn');
+    if (!currentFieldId) return;
+    document.querySelectorAll('.animal-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const fs = getFieldState(currentFieldId);
+    const oldAnimal = fs.animal;
+    const newAnimal = btn.dataset.animal;
+    fs.animal = newAnimal;
+    saveFieldState();
+    renderCarico(currentFieldId);
+
+    // Auto-log: cambio specie (solo se occupato e cambio reale)
+    if (oldAnimal !== newAnimal && fs.status === 'occupato' && (fs.capi || 0) > 0) {
+      const oldLabel = ANIMAL_LABELS[oldAnimal] || oldAnimal;
+      const newLabel = ANIMAL_LABELS[newAnimal] || newAnimal;
+      pushEvent(currentFieldId, 'update', `Specie cambiata: da ${oldLabel} a ${newLabel}`);
+    }
+  }
+});
+
+function changeCapi(delta) {
+  if (!currentFieldId) return;
+  const fs = getFieldState(currentFieldId);
+  const oldN = fs.capi || 0;
+  let n = oldN + delta;
+  if (n < 0) n = 0;
+  if (n > 500) n = 500;
+  fs.capi = n;
+  document.getElementById('capi-num').textContent = n;
+  saveFieldState();
+  renderCarico(currentFieldId);
+
+  // Auto-log con debounce (3s di inattività prima di scrivere l'evento)
+  if (n !== oldN && fs.status === 'occupato') {
+    scheduleCapiUpdate(currentFieldId, oldN, n, fs.animal);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════ */
+
+async function init() {
+  updateGreeting();
+  setInterval(updateGreeting, 60000);
+
+  // Carica dati in parallelo (NDVI + meteo + forecast)
+  try {
+    await loadAllData();
+    // Forecast per TUTTI i campi (latitudini diverse = previsioni diverse,
+    // specialmente in Appennino dove temporali sono localizzati)
+    await Promise.all(FIELDS.map(async f => {
+      try {
+        dataCache.forecast[f.id] = await fetchForecast(f.id);
+      } catch (e) {
+        console.warn(`Forecast non disponibile per ${f.id}:`, e);
+      }
+    }));
+  } catch (e) {
+    console.error('Init error:', e);
+    document.getElementById('error-container').innerHTML = `
+      <div class="error-banner">
+        <span class="error-banner-icon">⚠</span>
+        <span>Alcuni dati non sono stati caricati. Mostro i dati disponibili.</span>
+      </div>
+    `;
+  }
+
+  // Render
+  renderVerdict();
+  renderRecap();
+  // Per la home usiamo il forecast del primo campo (sufficiente quando i campi sono vicini)
+  const primaryForecastId = FIELDS.find(f => dataCache.forecast[f.id])?.id || FIELDS[0].id;
+  renderWeatherStrip(dataCache.forecast[primaryForecastId]);
+  renderAlerts();
+  renderFreshness();
+}
+
+init();
+</script>
+
+</body>
+</html>
