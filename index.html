@@ -516,6 +516,39 @@ body::before {
   color: var(--ink-faint); margin-top: 2px;
 }
 
+/* SOTTO-CONTEGGI BOVINI (vitelli/manze) */
+.capi-subcounts {
+  margin: 14px 22px 0;
+  border-top: 1px dashed var(--line);
+  padding-top: 12px;
+  display: none;  /* nascosto di default, mostrato via JS quando animal=bovino */
+}
+.capi-subcounts.active { display: block; }
+.capi-subrow {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0;
+}
+.capi-sub-label {
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: 0.05em; color: var(--ink-soft);
+}
+.capi-sub-control {
+  display: flex; align-items: center; gap: 8px;
+}
+.capi-btn.small {
+  width: 28px; height: 28px; font-size: 13px;
+  background: var(--bg-tint); border: 1px solid var(--line);
+  border-radius: 8px; color: var(--ink);
+  font-family: var(--font-sans); font-weight: 600;
+  cursor: pointer;
+}
+.capi-btn.small:active { background: var(--bg-warm); }
+.capi-sub-num {
+  font-family: var(--font-mono); font-size: 14px;
+  min-width: 26px; text-align: center; color: var(--ink);
+  font-weight: 600;
+}
+
 /* MINI METRICS */
 .metric-mini-grid {
   margin: 0 22px 24px;
@@ -1265,10 +1298,30 @@ body::before {
           <button class="capi-btn" onclick="changeCapi(-1)">−</button>
           <div class="capi-value">
             <div class="capi-num" id="capi-num">0</div>
-            <div class="capi-label">capi</div>
+            <div class="capi-label">capi totali</div>
           </div>
           <button class="capi-btn" onclick="changeCapi(1)">+</button>
           <button class="capi-btn big" onclick="changeCapi(10)">+10</button>
+        </div>
+
+        <!-- Sotto-conteggi (visibili solo se animale = bovino) -->
+        <div class="capi-subcounts" id="capi-subcounts">
+          <div class="capi-subrow">
+            <div class="capi-sub-label">di cui manze (6-24 mesi)</div>
+            <div class="capi-sub-control">
+              <button class="capi-btn small" onclick="changeSubCapi('manze', -1)">−</button>
+              <span class="capi-sub-num" id="capi-manze">0</span>
+              <button class="capi-btn small" onclick="changeSubCapi('manze', 1)">+</button>
+            </div>
+          </div>
+          <div class="capi-subrow">
+            <div class="capi-sub-label">di cui vitelli (&lt; 6 mesi)</div>
+            <div class="capi-sub-control">
+              <button class="capi-btn small" onclick="changeSubCapi('vitelli', -1)">−</button>
+              <span class="capi-sub-num" id="capi-vitelli">0</span>
+              <button class="capi-btn small" onclick="changeSubCapi('vitelli', 1)">+</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2260,6 +2313,7 @@ function openField(id) {
     b.classList.toggle('active', b.dataset.status === fs.status);
   });
   document.getElementById('animal-section').classList.toggle('active', fs.status === 'occupato');
+  refreshSubCountsVisibility(id);
 
   // Carico
   renderCarico(id);
@@ -2435,23 +2489,49 @@ function renderFieldKPIs(fieldId) {
   `;
 }
 
+// Coefficienti UBA per specie principale (Reg. CE 1974/2006)
 const UBA_FACTOR = { bovino: 1.0, ovino: 0.15, caprino: 0.15, equino: 1.0 };
 
-// Soglie UBA/ha calibrate per pascolo bovino estensivo appenninico
-// Riferimenti: Reg. CE 1974/2006, DM 1420/2015 (carico minimo PAC 0,2 UBA/ha),
-// letteratura per zone montane (carico sostenibile 0,3-1,0 UBA/ha)
-// I valori 2-4 UBA/ha sono tipici della pianura intensiva, non del pascolo estensivo
+// Sotto-categorie bovine (solo applicabili se animal=bovino)
+const UBA_SUB_BOVINE = {
+  manze:    0.60,  // bovini 6-24 mesi (vitelloni, manze da rimonta)
+  vitelli:  0.40,  // bovini < 6 mesi (lattanti al seguito)
+  // (il resto del totale = adulti coefficient 1.0)
+};
+
+// Soglie UBA/ha per CARICO ISTANTANEO (non media annua PAC)
+// In pascolamento turnato i carichi istantanei sono naturalmente alti per pochi giorni
+// poi pascolo a riposo. La PAC misura la media annua, non il picco.
 function classifyUbaHa(ubaHa) {
-  if (ubaHa < 0.2)  return { label: 'Carico insufficiente', cls: 'low'  };
-  if (ubaHa < 1.0)  return { label: 'Carico ottimale',      cls: 'ok'   };
-  if (ubaHa < 2.0)  return { label: 'Carico elevato',       cls: 'warn' };
-  return                   { label: 'Carico critico',       cls: 'bad'  };
+  if (ubaHa < 1.0)  return { label: 'Carico leggero',       cls: 'low'  };
+  if (ubaHa < 4.0)  return { label: 'Carico ottimale',      cls: 'ok'   };
+  if (ubaHa < 8.0)  return { label: 'Carico elevato',       cls: 'warn' };
+  return                   { label: 'Carico molto elevato', cls: 'bad'  };
+}
+
+// Calcolo UBA totale considerando i sotto-conteggi bovini
+function computeUba(fs) {
+  const total = fs.capi || 0;
+  if (total <= 0) return 0;
+  const animal = fs.animal || 'bovino';
+
+  if (animal !== 'bovino') {
+    // Specie diverse da bovino: applicazione diretta del coefficiente
+    return total * (UBA_FACTOR[animal] || 1.0);
+  }
+
+  // Per bovini: differenzia adulti / manze / vitelli
+  const manze = Math.min(fs.capi_manze || 0, total);
+  const vitelli = Math.min(fs.capi_vitelli || 0, total - manze);
+  const adulti = Math.max(0, total - manze - vitelli);
+
+  return (adulti * 1.0) + (manze * UBA_SUB_BOVINE.manze) + (vitelli * UBA_SUB_BOVINE.vitelli);
 }
 
 function renderCarico(fieldId) {
   const f = FIELDS.find(x => x.id === fieldId);
   const fs = getFieldState(fieldId);
-  const uba = (fs.capi || 0) * (UBA_FACTOR[fs.animal] || 1.0);
+  const uba = computeUba(fs);
   const ubaHa = (uba / (f?.area || 1)).toFixed(2);
   const ubaValEl = document.getElementById('carico-value');
   const ubaSubEl = document.getElementById('carico-sub');
@@ -2469,9 +2549,44 @@ function getCaricoLabel(fieldId) {
   const f = FIELDS.find(x => x.id === fieldId);
   const fs = getFieldState(fieldId);
   if (fs.status !== 'occupato') return null;
-  const uba = (fs.capi || 0) * (UBA_FACTOR[fs.animal] || 1.0);
+  const uba = computeUba(fs);
   const ubaHa = uba / (f?.area || 1);
   return { ubaHa, ...classifyUbaHa(ubaHa) };
+}
+
+// Modifica un sotto-conteggio (vitelli o manze)
+function changeSubCapi(kind, delta) {
+  if (!currentFieldId) return;
+  const fs = getFieldState(currentFieldId);
+  const key = `capi_${kind}`;  // capi_vitelli o capi_manze
+  const oldN = fs[key] || 0;
+  const total = fs.capi || 0;
+
+  // Conteggio dell'altro sotto-tipo per il vincolo
+  const otherKey = kind === 'vitelli' ? 'capi_manze' : 'capi_vitelli';
+  const otherN = fs[otherKey] || 0;
+
+  let n = oldN + delta;
+  if (n < 0) n = 0;
+  // Vincolo: vitelli + manze non possono superare il totale dei capi
+  if (n + otherN > total) n = Math.max(0, total - otherN);
+
+  fs[key] = n;
+  saveFieldState();
+  document.getElementById(`capi-${kind}`).textContent = n;
+  renderCarico(currentFieldId);
+  document.getElementById('det-verdict-summary').innerHTML = generateFieldVerdictSummary(currentFieldId);
+}
+
+// Mostra/nascondi i sotto-conteggi quando la specie cambia
+function refreshSubCountsVisibility(fieldId) {
+  const fs = getFieldState(fieldId);
+  const el = document.getElementById('capi-subcounts');
+  if (!el) return;
+  el.classList.toggle('active', fs.animal === 'bovino' && fs.status === 'occupato');
+  // Aggiorna i numeri visualizzati
+  document.getElementById('capi-manze').textContent = fs.capi_manze || 0;
+  document.getElementById('capi-vitelli').textContent = fs.capi_vitelli || 0;
 }
 
 function renderStress(fieldId) {
@@ -3195,6 +3310,7 @@ function setStatus(status) {
   renderCarico(currentFieldId);
   renderStress(currentFieldId);
   document.getElementById('capi-num').textContent = fs.capi;
+  refreshSubCountsVisibility(currentFieldId);
 
   // Aggiorna anche verdetto e recap (cambiano in base allo stato gestionale)
   // — del campo corrente:
@@ -3215,8 +3331,14 @@ document.addEventListener('click', e => {
     const oldAnimal = fs.animal;
     const newAnimal = btn.dataset.animal;
     fs.animal = newAnimal;
+    // Se cambio da bovino a un'altra specie, azzero i sub-conteggi (non hanno senso)
+    if (oldAnimal === 'bovino' && newAnimal !== 'bovino') {
+      fs.capi_manze = 0;
+      fs.capi_vitelli = 0;
+    }
     saveFieldState();
     renderCarico(currentFieldId);
+    refreshSubCountsVisibility(currentFieldId);
     // Il verdetto legge UBA: cambio specie può cambiare la classifica
     document.getElementById('det-verdict-summary').innerHTML = generateFieldVerdictSummary(currentFieldId);
 
@@ -3237,9 +3359,26 @@ function changeCapi(delta) {
   if (n < 0) n = 0;
   if (n > 500) n = 500;
   fs.capi = n;
+
+  // Vincolo: manze + vitelli non possono superare il nuovo totale.
+  // Se il totale scende, riduci proporzionalmente sub-conteggi (priorità: tengo vitelli)
+  const manze = fs.capi_manze || 0;
+  const vitelli = fs.capi_vitelli || 0;
+  if (manze + vitelli > n) {
+    // Riduci prima le manze (i vitelli al seguito li teniamo), poi vitelli
+    if (vitelli > n) {
+      fs.capi_vitelli = n;
+      fs.capi_manze = 0;
+    } else {
+      fs.capi_vitelli = vitelli;
+      fs.capi_manze = Math.max(0, n - vitelli);
+    }
+  }
+
   document.getElementById('capi-num').textContent = n;
   saveFieldState();
   renderCarico(currentFieldId);
+  refreshSubCountsVisibility(currentFieldId);
   // Il verdetto del campo legge il carico UBA/ha: va rinfrescato
   document.getElementById('det-verdict-summary').innerHTML = generateFieldVerdictSummary(currentFieldId);
 
