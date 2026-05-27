@@ -549,6 +549,78 @@ body::before {
   font-weight: 600;
 }
 
+/* TOGGLE FIENO */
+.fieno-toggle-row {
+  margin: 14px 22px 0;
+  padding: 12px 0;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.fieno-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.fieno-toggle-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+.fieno-toggle-title {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.fieno-toggle-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-soft);
+  letter-spacing: 0.06em;
+  margin-top: 2px;
+}
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg-tint);
+  border: 1px solid var(--line);
+  transition: 0.25s;
+  border-radius: 26px;
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.25s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--moss);
+  border-color: var(--moss);
+}
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
 /* MINI METRICS */
 .metric-mini-grid {
   margin: 0 22px 24px;
@@ -1352,6 +1424,21 @@ body::before {
           </div>
         </div>
       </div>
+
+      <!-- Toggle fieno integrativo: caratteristica permanente del pascolo -->
+      <div class="fieno-toggle-row">
+        <div class="fieno-toggle-label">
+          <span class="fieno-toggle-icon">🌾</span>
+          <div>
+            <div class="fieno-toggle-title">Fieno integrativo</div>
+            <div class="fieno-toggle-sub">Ballone permanente nel pascolo</div>
+          </div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="fieno-toggle" onchange="toggleFieno()">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
     </div>
 
     <div class="metric-mini-grid">
@@ -1583,7 +1670,14 @@ const FIELD_STATE = loadFieldState();
 // Default stato per campi senza configurazione utente
 function getFieldState(id) {
   if (!FIELD_STATE[id]) {
-    FIELD_STATE[id] = { status: 'libero', animal: 'bovino', capi: 0 };
+    // hasFieno default true: la maggior parte degli allevatori Romagnola tiene
+    // un ballone permanente nel pascolo. Può essere disabilitato per pascoli
+    // difficili da raggiungere (ripe, dirupi, alpeggi remoti).
+    FIELD_STATE[id] = { status: 'libero', animal: 'bovino', capi: 0, hasFieno: true };
+  }
+  // Migrazione difensiva: se lo state esiste già ma manca hasFieno (vecchio salvataggio)
+  if (FIELD_STATE[id].hasFieno === undefined) {
+    FIELD_STATE[id].hasFieno = true;
   }
   return FIELD_STATE[id];
 }
@@ -2099,13 +2193,23 @@ function renderAlerts() {
 
     if (status === 'critico') {
       if (mgmt === 'occupato') {
-        // Urgente: animali su pascolo esausto
-        alerts.push({
-          type: 'critical',
-          icon: '⚠',
-          text: `<strong>${f.name} in difficoltà</strong>. Gli animali sono su un pascolo esausto. Valuta spostamento o integrazione foraggio.`,
-          fieldId: f.id,
-        });
+        if (fs.hasFieno) {
+          // Con fieno integrativo: allerta soft (urgenza ridotta)
+          alerts.push({
+            type: '',
+            icon: '⚠',
+            text: `<strong>${f.name} in calo</strong>. Pascolo esausto ma fieno integrativo presente. Pianifica spostamento nei prossimi giorni.`,
+            fieldId: f.id,
+          });
+        } else {
+          // Senza fieno: emergenza
+          alerts.push({
+            type: 'critical',
+            icon: '⚠',
+            text: `<strong>${f.name} in difficoltà</strong>. Gli animali sono su un pascolo esausto senza fieno integrativo. Sposta o integra subito.`,
+            fieldId: f.id,
+          });
+        }
       } else if (mgmt === 'libero') {
         // Avviso: non aprirlo
         alerts.push({
@@ -2427,9 +2531,15 @@ function generateFieldVerdictSummary(fieldId) {
     if (mgmt === 'riposo') {
       summary = `Vegetazione <strong>molto bassa</strong>, ma il pascolo è già a riposo. È atteso che sia in questa condizione mentre recupera — continua a lasciarlo chiuso.`;
     } else if (mgmt === 'occupato') {
-      summary = `Vegetazione <strong>molto bassa</strong> e stress evidente, con animali ancora sul pascolo`;
-      if (carico) summary += ` (${carico.ubaHa.toFixed(2)} UBA/ha)`;
-      summary += `. Considera integrazione foraggio o spostamento <strong>immediato</strong>.`;
+      if (fs.hasFieno) {
+        summary = `Vegetazione <strong>molto bassa</strong>, con animali sul pascolo`;
+        if (carico) summary += ` (${carico.ubaHa.toFixed(2)} UBA/ha)`;
+        summary += `. Il fieno integrativo nel ballone copre parte del fabbisogno, ma valuta comunque lo spostamento <strong>nei prossimi giorni</strong> per non degradare ulteriormente il cotico.`;
+      } else {
+        summary = `Vegetazione <strong>molto bassa</strong> e stress evidente, con animali ancora sul pascolo`;
+        if (carico) summary += ` (${carico.ubaHa.toFixed(2)} UBA/ha)`;
+        summary += `. Nessun fieno integrativo: considera integrazione foraggio o spostamento <strong>immediato</strong>.`;
+      }
     } else {
       summary = `Vegetazione <strong>molto bassa</strong> e stress evidente. Il pascolo non è pronto per essere riaperto — mantienilo chiuso e valuta di lasciarlo a riposo.`;
     }
@@ -2615,6 +2725,30 @@ function refreshSubCountsVisibility(fieldId) {
   // Aggiorna i numeri visualizzati
   document.getElementById('capi-manze').textContent = fs.capi_manze || 0;
   document.getElementById('capi-vitelli').textContent = fs.capi_vitelli || 0;
+  // Sincronizza anche il toggle fieno (sempre visibile, indipendente da animale/status)
+  const fienoToggle = document.getElementById('fieno-toggle');
+  if (fienoToggle) {
+    fienoToggle.checked = !!fs.hasFieno;
+  }
+}
+
+// Toggle fieno integrativo del pascolo corrente
+function toggleFieno() {
+  if (!currentFieldId) return;
+  const fs = getFieldState(currentFieldId);
+  const checkbox = document.getElementById('fieno-toggle');
+  fs.hasFieno = checkbox.checked;
+  saveFieldState();
+  // Rigenera verdetto del campo (cambia messaggi critici)
+  document.getElementById('det-verdict-summary').innerHTML = generateFieldVerdictSummary(currentFieldId);
+  // Rigenera anche home (allerte possono cambiare)
+  if (typeof renderAlerts === 'function') renderAlerts();
+  if (typeof renderVerdict === 'function') renderVerdict();
+  // Auto-log
+  if (typeof pushEvent === 'function') {
+    pushEvent(currentFieldId, 'update',
+      fs.hasFieno ? 'Fieno integrativo attivato' : 'Fieno integrativo disattivato');
+  }
 }
 
 function renderStress(fieldId) {
@@ -2845,7 +2979,7 @@ function renderPerchePage(fieldId) {
 
   const data = dataCache.ndvi[fieldId] || [];
   const s2Count = data.filter(r => r.source === 'sentinel-2').length;
-  const mlCount = data.filter(r => r.source === 'sentinel-1-conformal').length;
+  const mlCount = data.filter(r => (r.source === 'sentinel-1-conformal' || r.source === 'sentinel-1-conformal-imputed')).length;
 
   // Calcolo trend dettagliato
   let trendHTML = '';
@@ -2902,7 +3036,9 @@ function renderPerchePage(fieldId) {
   // Ultima rilevazione + interval ML se applicabile
   let lastObsHTML = '';
   if (latest) {
-    const src = latest.source === 'sentinel-1-conformal' ? 'Stima ML' : 'Sentinel-2';
+    const src = latest.source === 'sentinel-1-conformal' ? 'Stima ML'
+              : latest.source === 'sentinel-1-conformal-imputed' ? 'Stima ML (imputed)'
+              : 'Sentinel-2';
     const d = new Date(latest.date);
     const today = new Date();
     const ageDays = Math.floor((today - d) / 86400000);
@@ -2914,7 +3050,7 @@ function renderPerchePage(fieldId) {
       </div>
     `;
 
-    if (latest.source === 'sentinel-1-conformal' &&
+    if ((latest.source === 'sentinel-1-conformal' || latest.source === 'sentinel-1-conformal-imputed') &&
         latest.ndvi_lower_90 !== null && latest.ndvi_upper_90 !== null) {
       const lo = parseFloat(latest.ndvi_lower_90);
       const up = parseFloat(latest.ndvi_upper_90);
@@ -2979,9 +3115,12 @@ function renderPerchePage(fieldId) {
     .slice(0, 5);
 
   const timelineHTML = lastObs.map(r => {
-    const dotCls = r.source === 'sentinel-1-conformal' ? 'ml' : 's2';
-    const srcLabel = r.source === 'sentinel-1-conformal' ? 'Stima ML' : 'Sentinel-2';
-    const interval = r.source === 'sentinel-1-conformal' && r.ndvi_lower_90
+    const isML = (r.source === 'sentinel-1-conformal' || r.source === 'sentinel-1-conformal-imputed');
+    const dotCls = isML ? 'ml' : 's2';
+    const srcLabel = r.source === 'sentinel-1-conformal' ? 'Stima ML'
+                   : r.source === 'sentinel-1-conformal-imputed' ? 'Stima ML (sostituiva S2)'
+                   : 'Sentinel-2';
+    const interval = isML && r.ndvi_lower_90
       ? ` <em>± [${parseFloat(r.ndvi_lower_90).toFixed(2)}–${parseFloat(r.ndvi_upper_90).toFixed(2)}]</em>` : '';
     return `
       <div class="timeline-item">
