@@ -2499,14 +2499,20 @@ const UBA_SUB_BOVINE = {
   // (il resto del totale = adulti coefficient 1.0)
 };
 
-// Soglie UBA/ha per CARICO ISTANTANEO (non media annua PAC)
-// In pascolamento turnato i carichi istantanei sono naturalmente alti per pochi giorni
-// poi pascolo a riposo. La PAC misura la media annua, non il picco.
+// Soglie UBA/ha per CARICO ISTANTANEO con ballone fieno integrato
+// 
+// Calibrate sulla base dell'incontro con allevatore Romagnola maggio 2026:
+// - Pascolamento turnato 15-20gg seguito da riposo 20-30gg
+// - Ballone fieno permanente disponibile in ogni pascolo (copre 15-25% fabbisogno)
+// - Razza Romagnola bovino da carne, regime biologico estensivo
+//
+// Le soglie sono ~25% più tolleranti delle classiche da regime senza fieno integrativo,
+// perché il fieno permette di sostenere carichi istantanei maggiori senza stressare il pascolo.
 function classifyUbaHa(ubaHa) {
-  if (ubaHa < 1.0)  return { label: 'Carico leggero',       cls: 'low'  };
-  if (ubaHa < 4.0)  return { label: 'Carico ottimale',      cls: 'ok'   };
-  if (ubaHa < 8.0)  return { label: 'Carico elevato',       cls: 'warn' };
-  return                   { label: 'Carico molto elevato', cls: 'bad'  };
+  if (ubaHa < 1.5)   return { label: 'Carico leggero',       cls: 'low'  };
+  if (ubaHa < 5.0)   return { label: 'Carico ottimale',      cls: 'ok'   };
+  if (ubaHa < 10.0)  return { label: 'Carico elevato',       cls: 'warn' };
+  return                    { label: 'Carico molto elevato', cls: 'bad'  };
 }
 
 // Calcolo UBA totale considerando i sotto-conteggi bovini
