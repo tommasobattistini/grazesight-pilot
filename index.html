@@ -788,6 +788,12 @@ body::before {
   background: var(--moss-dk);
   box-shadow: 0 0 0 2px white;
 }
+.perche-interval-marker.outside {
+  background: var(--clay-dk);
+  height: 40px;
+  top: -6px;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px rgba(194, 94, 63, 0.25);
+}
 .perche-interval-numbers {
   display: flex;
   justify-content: space-between;
@@ -795,6 +801,28 @@ body::before {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--ink-soft);
+}
+.perche-interval-detail {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.perche-interval-detail strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.perche-interval-warning {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: rgba(194, 94, 63, 0.08);
+  border-left: 3px solid var(--clay);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--clay-dk);
+  border-radius: 4px;
 }
 
 .timeline {
@@ -2499,20 +2527,14 @@ const UBA_SUB_BOVINE = {
   // (il resto del totale = adulti coefficient 1.0)
 };
 
-// Soglie UBA/ha per CARICO ISTANTANEO con ballone fieno integrato
-// 
-// Calibrate sulla base dell'incontro con allevatore Romagnola maggio 2026:
-// - Pascolamento turnato 15-20gg seguito da riposo 20-30gg
-// - Ballone fieno permanente disponibile in ogni pascolo (copre 15-25% fabbisogno)
-// - Razza Romagnola bovino da carne, regime biologico estensivo
-//
-// Le soglie sono ~25% più tolleranti delle classiche da regime senza fieno integrativo,
-// perché il fieno permette di sostenere carichi istantanei maggiori senza stressare il pascolo.
+// Soglie UBA/ha per CARICO ISTANTANEO (non media annua PAC)
+// In pascolamento turnato i carichi istantanei sono naturalmente alti per pochi giorni
+// poi pascolo a riposo. La PAC misura la media annua, non il picco.
 function classifyUbaHa(ubaHa) {
-  if (ubaHa < 1.5)   return { label: 'Carico leggero',       cls: 'low'  };
-  if (ubaHa < 5.0)   return { label: 'Carico ottimale',      cls: 'ok'   };
-  if (ubaHa < 10.0)  return { label: 'Carico elevato',       cls: 'warn' };
-  return                    { label: 'Carico molto elevato', cls: 'bad'  };
+  if (ubaHa < 1.0)  return { label: 'Carico leggero',       cls: 'low'  };
+  if (ubaHa < 4.0)  return { label: 'Carico ottimale',      cls: 'ok'   };
+  if (ubaHa < 8.0)  return { label: 'Carico elevato',       cls: 'warn' };
+  return                   { label: 'Carico molto elevato', cls: 'bad'  };
 }
 
 // Calcolo UBA totale considerando i sotto-conteggi bovini
@@ -2897,23 +2919,54 @@ function renderPerchePage(fieldId) {
       const lo = parseFloat(latest.ndvi_lower_90);
       const up = parseFloat(latest.ndvi_upper_90);
       const val = latest.mean_ndvi;
-      // Mappa range [0,1] su barra
-      const loPct = lo * 100;
-      const upPct = up * 100;
-      const valPct = val * 100;
       const conf = latest.confidence || 'medium';
+
+      // Verifica se il valore predetto cade dentro l'intervallo conformal.
+      // Se è fuori (succede con CQR o margini asimmetrici), espandiamo
+      // visivamente la barra per includerlo e lo segnaliamo all'utente.
+      const valOutside = (val < lo) || (val > up);
+
+      // Estremi visualizzati: barra a [min(lo,val), max(up,val)] arrotondata
+      // a un intervallo NDVI ragionevole, così tutti gli elementi sono visibili
+      const padding = 0.05;
+      let viewMin = Math.max(0, Math.min(lo, val) - padding);
+      let viewMax = Math.min(1, Math.max(up, val) + padding);
+      // Range minimo per leggibilità (almeno 0.2 di larghezza visuale)
+      if ((viewMax - viewMin) < 0.20) {
+        const center = (viewMax + viewMin) / 2;
+        viewMin = Math.max(0, center - 0.10);
+        viewMax = Math.min(1, center + 0.10);
+      }
+      const viewRange = viewMax - viewMin;
+
+      // Funzione di mappatura: NDVI [viewMin..viewMax] → percentuale [0..100]
+      const pct = (v) => ((v - viewMin) / viewRange) * 100;
+
+      const loPct  = pct(lo);
+      const upPct  = pct(up);
+      const valPct = pct(val);
+
+      // Eventuale icona di avviso se il marker è fuori dal range conformal
+      const outsideWarning = valOutside
+        ? `<div class="perche-interval-warning">⚠ La stima (${val.toFixed(2)}) cade fuori dall'intervallo di confidenza calcolato. Possibile incertezza extra del modello.</div>`
+        : '';
+
       lastObsHTML += `
         <div class="perche-interval">
           <div class="perche-interval-label">Intervallo di confidenza 90% — ${conf}</div>
           <div class="perche-interval-bar">
             <div class="perche-interval-range" style="left:${loPct}%; right:${100-upPct}%;"></div>
-            <div class="perche-interval-marker" style="left:${valPct}%;"></div>
+            <div class="perche-interval-marker${valOutside ? ' outside' : ''}" style="left:${valPct}%;"></div>
           </div>
           <div class="perche-interval-numbers">
-            <span>${lo.toFixed(2)}</span>
-            <span>${val.toFixed(2)}</span>
-            <span>${up.toFixed(2)}</span>
+            <span>${viewMin.toFixed(2)}</span>
+            <span>${viewMax.toFixed(2)}</span>
           </div>
+          <div class="perche-interval-detail">
+            Intervallo conformal: <strong>${lo.toFixed(2)}</strong> – <strong>${up.toFixed(2)}</strong> ·
+            Stima: <strong>${val.toFixed(2)}</strong>
+          </div>
+          ${outsideWarning}
         </div>
       `;
     }
