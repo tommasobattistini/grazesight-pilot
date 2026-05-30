@@ -3142,129 +3142,186 @@ function renderForecastChart(fieldId, futureForecasts) {
     forecastChartInstance = null;
   }
 
-  const ctx = canvas.getContext('2d');
+  // Helper: data ISO -> 'gg/mm'
+  const dateShort = (iso) => {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  };
 
-  // Dati osservati 2026
+  // Dati osservati 2026 ordinati per data
   const ndviObs = (dataCache.ndvi[fieldId] || [])
-    .filter(r => r.mean_ndvi !== null && !isNaN(Number(r.mean_ndvi)))
-    .map(r => ({ x: r.date, y: Number(r.mean_ndvi) }))
-    .sort((a, b) => new Date(a.x) - new Date(b.x));
+    .filter(r => r.mean_ndvi !== null && !isNaN(Number(r.mean_ndvi)) && r.date)
+    .map(r => ({ date: r.date, value: Number(r.mean_ndvi) }))
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-  // Trovo l'ultima data osservata: serve come ponte tra osservato e forecast
-  const lastObs = ndviObs.length > 0 ? ndviObs[ndviObs.length - 1] : null;
+  if (ndviObs.length === 0 && futureForecasts.length === 0) {
+    // Niente da disegnare
+    return;
+  }
 
-  // Dati forecast: prolungamento dalla last obs
-  const forecastPoints = futureForecasts.map(r => ({
-    x: r.date_forecast,
-    y: Number(r.mean_ndvi_forecast),
-    lo: Number(r.ndvi_lower_90),
-    hi: Number(r.ndvi_upper_90),
-  }));
+  // Costruisco serie unificata: ogni "punto" ha una label data
+  // e tre slot di valore: observed, predicted, bandLower, bandUpper
+  // Labels = unione ordinata di date osservate + date forecast future
+  const allDatesISO = [
+    ...ndviObs.map(p => p.date),
+    ...futureForecasts.map(r => r.date_forecast),
+  ];
+  // Deduplica e ordina
+  const uniqDatesISO = [...new Set(allDatesISO)]
+    .sort((a, b) => new Date(a) - new Date(b));
 
-  // Linea forecast continua = parte dall'ultima obs e arriva ai forecast
-  const forecastLine = lastObs ? [lastObs, ...forecastPoints] : forecastPoints;
+  // Indice della "transizione": ultima data osservata
+  const lastObsISO = ndviObs.length > 0 ? ndviObs[ndviObs.length - 1].date : null;
 
-  // Banda conformal: due serie (lower e upper) che vanno dalla last obs alle bande forecast
-  const bandLower = lastObs
-    ? [{ x: lastObs.x, y: lastObs.y }, ...forecastPoints.map(p => ({ x: p.x, y: p.lo }))]
-    : forecastPoints.map(p => ({ x: p.x, y: p.lo }));
-  const bandUpper = lastObs
-    ? [{ x: lastObs.x, y: lastObs.y }, ...forecastPoints.map(p => ({ x: p.x, y: p.hi }))]
-    : forecastPoints.map(p => ({ x: p.x, y: p.hi }));
+  // Mappa data → valori per quella data
+  const obsMap = new Map(ndviObs.map(p => [p.date, p.value]));
+  const fcMap = new Map(futureForecasts.map(r => [r.date_forecast, {
+    val: Number(r.mean_ndvi_forecast),
+    lo:  Number(r.ndvi_lower_90),
+    hi:  Number(r.ndvi_upper_90),
+  }]));
+
+  // Etichette mostrate sull'asse X (date abbreviate)
+  const labels = uniqDatesISO.map(dateShort);
+
+  // Serie 1: osservato (null dove non c'è dato osservato)
+  const observedData = uniqDatesISO.map(d => obsMap.has(d) ? obsMap.get(d) : null);
+
+  // Serie 2: predizione (include il punto di "ancoraggio" all'ultima obs per dare continuità)
+  const predictedData = uniqDatesISO.map(d => {
+    if (lastObsISO && d === lastObsISO) return obsMap.get(d);  // ponte
+    if (fcMap.has(d)) return fcMap.get(d).val;
+    return null;
+  });
+
+  // Serie 3+4: banda conformal lower/upper (solo dove c'è forecast)
+  const bandLowerData = uniqDatesISO.map(d => {
+    if (lastObsISO && d === lastObsISO) return obsMap.get(d);
+    if (fcMap.has(d)) return fcMap.get(d).lo;
+    return null;
+  });
+  const bandUpperData = uniqDatesISO.map(d => {
+    if (lastObsISO && d === lastObsISO) return obsMap.get(d);
+    if (fcMap.has(d)) return fcMap.get(d).hi;
+    return null;
+  });
 
   try {
-    forecastChartInstance = new Chart(ctx, {
-    type: 'line',
-    data: {
-      datasets: [
-        // Banda upper (riempimento verso il basso)
-        {
-          label: 'Banda 90% upper',
-          data: bandUpper,
-          borderColor: 'transparent',
-          backgroundColor: 'rgba(74,107,58,0.10)',
-          pointRadius: 0,
-          fill: '+1',           // riempie fino al dataset successivo (lower)
-          tension: 0.25,
-          order: 3,
-        },
-        // Banda lower
-        {
-          label: 'Banda 90% lower',
-          data: bandLower,
-          borderColor: 'transparent',
-          backgroundColor: 'transparent',
-          pointRadius: 0,
-          fill: false,
-          tension: 0.25,
-          order: 3,
-        },
-        // Linea forecast tratteggiata
-        {
-          label: 'Previsto',
-          data: forecastLine,
-          borderColor: 'rgba(74,107,58,0.85)',
-          borderWidth: 2,
-          borderDash: [6, 4],
-          backgroundColor: 'transparent',
-          pointRadius: ctx => {
-            // Punto solo sui forecast veri, non sul ponte (lastObs)
-            const idx = ctx.dataIndex;
-            if (lastObs && idx === 0) return 0;
-            return 4;
+    forecastChartInstance = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          // Banda upper (riempita verso lower)
+          {
+            label: 'Banda 90% upper',
+            data: bandUpperData,
+            borderColor: 'transparent',
+            backgroundColor: 'rgba(74,107,58,0.12)',
+            pointRadius: 0,
+            fill: '+1',
+            tension: 0.3,
+            spanGaps: true,
+            order: 3,
           },
-          pointBackgroundColor: 'rgba(74,107,58,0.85)',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 1.5,
-          tension: 0.25,
-          order: 2,
+          // Banda lower
+          {
+            label: 'Banda 90% lower',
+            data: bandLowerData,
+            borderColor: 'transparent',
+            backgroundColor: 'transparent',
+            pointRadius: 0,
+            fill: false,
+            tension: 0.3,
+            spanGaps: true,
+            order: 3,
+          },
+          // Linea forecast (tratteggiata)
+          {
+            label: 'Previsto',
+            data: predictedData,
+            borderColor: 'rgba(74,107,58,0.85)',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            borderDash: [6, 4],
+            pointRadius: ctx => {
+              // Niente punto sul "ponte" (ultima osservata)
+              const labelISO = uniqDatesISO[ctx.dataIndex];
+              if (lastObsISO && labelISO === lastObsISO) return 0;
+              return predictedData[ctx.dataIndex] != null ? 4 : 0;
+            },
+            pointBackgroundColor: 'rgba(74,107,58,0.85)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5,
+            tension: 0.3,
+            spanGaps: true,
+            order: 2,
+          },
+          // Linea osservato (continua)
+          {
+            label: 'Osservato',
+            data: observedData,
+            borderColor: '#4a6e2a',
+            backgroundColor: 'rgba(74,110,42,0.06)',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            tension: 0.3,
+            fill: false,
+            spanGaps: true,
+            order: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1a1814',
+            titleFont: { family: 'DM Mono', size: 10 },
+            bodyFont: { family: 'Manrope', size: 12, weight: '600' },
+            padding: 10, cornerRadius: 8,
+            callbacks: {
+              title: items => {
+                const idx = items[0].dataIndex;
+                return formatDateIT(uniqDatesISO[idx]);
+              },
+              label: ctx => {
+                const dsLabel = ctx.dataset.label || '';
+                if (dsLabel.startsWith('Banda')) return null;
+                if (ctx.parsed.y == null) return null;
+                return `${dsLabel}: NDVI ${ctx.parsed.y.toFixed(2)}`;
+              },
+            },
+          },
         },
-        // Linea osservata continua
-        {
-          label: 'Osservato',
-          data: ndviObs,
-          borderColor: 'rgba(74,107,58,1)',
-          borderWidth: 2,
-          backgroundColor: 'transparent',
-          pointRadius: 0,
-          pointHoverRadius: 4,
-          tension: 0.25,
-          order: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'nearest', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: items => formatDateIT(items[0].parsed.x),
-            label: ctx => {
-              const dsLabel = ctx.dataset.label || '';
-              if (dsLabel.startsWith('Banda')) return null;
-              return `${dsLabel}: NDVI ${ctx.parsed.y.toFixed(3)}`;
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { family: "'DM Mono', monospace", size: 9 },
+              color: 'rgba(60,60,55,0.55)',
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 8,
+            },
+          },
+          y: {
+            min: 0, max: 1,
+            grid: { color: 'rgba(60,60,55,0.06)' },
+            ticks: {
+              font: { family: "'DM Mono', monospace", size: 10 },
+              color: 'rgba(60,60,55,0.55)',
+              stepSize: 0.2,
             },
           },
         },
       },
-      scales: {
-        x: {
-          type: 'time',
-          time: { unit: 'month', tooltipFormat: 'dd MMM yyyy' },
-          grid: { display: false },
-          ticks: { font: { family: "'DM Mono', monospace", size: 10 }, color: 'rgba(60,60,55,0.55)' },
-        },
-        y: {
-          min: 0, max: 1,
-          grid: { color: 'rgba(60,60,55,0.06)' },
-          ticks: { font: { family: "'DM Mono', monospace", size: 10 }, color: 'rgba(60,60,55,0.55)', stepSize: 0.2 },
-        },
-      },
-    },
-  });
+    });
   } catch (e) {
     console.error('Chart forecast creazione fallita:', e);
   }
