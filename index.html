@@ -3018,8 +3018,15 @@ function vegetazioneAttesaFromNdvi(ndvi) {
 
 function goForecast() {
   if (!currentFieldId) return;
-  renderForecastPage(currentFieldId);
   showPage('page-forecast');
+  // Render dopo che la pagina è visibile, così il canvas ha dimensioni corrette
+  setTimeout(() => {
+    try {
+      renderForecastPage(currentFieldId);
+    } catch (e) {
+      console.error('renderForecastPage error:', e);
+    }
+  }, 50);
 }
 
 function renderForecastPage(fieldId) {
@@ -3124,13 +3131,18 @@ let forecastChartInstance = null;
 function renderForecastChart(fieldId, futureForecasts) {
   const canvas = document.getElementById('forecastChart');
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js non caricato, salto rendering forecastChart');
+    return;
+  }
 
   // Distruggo precedente per evitare leak
   if (forecastChartInstance) {
-    forecastChartInstance.destroy();
+    try { forecastChartInstance.destroy(); } catch (e) { /* ignore */ }
     forecastChartInstance = null;
   }
+
+  const ctx = canvas.getContext('2d');
 
   // Dati osservati 2026
   const ndviObs = (dataCache.ndvi[fieldId] || [])
@@ -3160,7 +3172,8 @@ function renderForecastChart(fieldId, futureForecasts) {
     ? [{ x: lastObs.x, y: lastObs.y }, ...forecastPoints.map(p => ({ x: p.x, y: p.hi }))]
     : forecastPoints.map(p => ({ x: p.x, y: p.hi }));
 
-  forecastChartInstance = new Chart(ctx, {
+  try {
+    forecastChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
       datasets: [
@@ -3252,6 +3265,9 @@ function renderForecastChart(fieldId, futureForecasts) {
       },
     },
   });
+  } catch (e) {
+    console.error('Chart forecast creazione fallita:', e);
+  }
 }
 
 function renderStress(fieldId) {
