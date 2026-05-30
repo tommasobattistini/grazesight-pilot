@@ -711,104 +711,92 @@ body::before {
 .chart-canvas-wrap { position: relative; height: 180px; }
 
 /* ACTIONS */
-/* FORECAST (sezione collassabile) */
-.forecast-card {
-  margin: 0 22px 24px;
+/* FORECAST PAGE (pagina dedicata) */
+.forecast-page {
+  padding: 0;
+}
+
+/* Card di riferimento: ultima osservazione */
+.forecast-ref-card {
+  margin: 0 22px 20px;
+  padding: 16px 18px;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  border-left: 3px solid var(--moss);
+  border-radius: 12px;
 }
-.forecast-header {
-  width: 100%;
-  background: transparent;
-  border: 0;
-  padding: 16px 18px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  text-align: left;
-  -webkit-tap-highlight-color: transparent;
-}
-.forecast-header:hover {
-  background: var(--bg-tint);
-}
-.forecast-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.forecast-icon {
-  font-size: 22px;
-  line-height: 1;
-}
-.forecast-title {
-  font-family: var(--font-serif);
-  font-size: 16px;
-  color: var(--ink);
-  line-height: 1.2;
-}
-.forecast-sub {
+.forecast-ref-label {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--ink-soft);
-  letter-spacing: 0.06em;
-  margin-top: 3px;
   text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
 }
-.forecast-toggle-arrow {
-  font-size: 18px;
+.forecast-ref-date {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.forecast-ref-ago {
+  font-family: var(--font-sans);
+  font-size: 13px;
   color: var(--ink-soft);
-  transition: transform 0.25s ease;
+  margin-top: 4px;
 }
-.forecast-card.expanded .forecast-toggle-arrow {
-  transform: rotate(180deg);
+
+/* Adattamento chart-card al contesto forecast page */
+.forecast-chart-card {
+  margin-bottom: 24px;
 }
-.forecast-body {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.35s ease, padding 0.25s ease;
-  padding: 0 18px;
+.chart-legend-line {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+  border-top: 2px dashed currentColor;
+  background: transparent !important;
 }
-.forecast-card.expanded .forecast-body {
-  max-height: 2000px;
-  padding: 0 18px 18px;
+
+/* Lista verdetti per orizzonte */
+.forecast-list-section {
+  margin: 0 22px 24px;
 }
-.forecast-meta {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--ink-soft);
-  margin: 0 0 14px;
-  padding: 10px 12px;
-  background: var(--bg-tint);
-  border-radius: 8px;
-  line-height: 1.6;
+.forecast-list-title {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  color: var(--ink);
+  margin-bottom: 14px;
+  padding-left: 4px;
 }
-.forecast-items {
+.forecast-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 .forecast-item {
-  padding: 14px;
-  background: var(--bg-tint);
-  border-left: 3px solid var(--moss);
-  border-radius: 8px;
+  padding: 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--moss);
+  border-radius: 12px;
 }
-.forecast-item.conf-medium { border-left-color: #d4a847; }
-.forecast-item.conf-low    { border-left-color: var(--clay); }
-.forecast-item-header {
+.forecast-item.verdict-ottimo   { border-left-color: var(--moss); }
+.forecast-item.verdict-buono    { border-left-color: var(--moss); }
+.forecast-item.verdict-monitora { border-left-color: #d4a847; }
+.forecast-item.verdict-critico  { border-left-color: var(--clay); }
+
+.forecast-item-top {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .forecast-item-when {
   font-family: var(--font-serif);
-  font-size: 15px;
+  font-size: 17px;
   color: var(--ink);
   font-weight: 500;
 }
@@ -817,16 +805,32 @@ body::before {
   font-size: 11px;
   color: var(--ink-soft);
 }
+
+.forecast-item-verdict {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.forecast-item.verdict-ottimo   .forecast-item-verdict { background: rgba(74,107,58,0.12); color: var(--moss-dk); }
+.forecast-item.verdict-buono    .forecast-item-verdict { background: rgba(74,107,58,0.08); color: var(--moss-dk); }
+.forecast-item.verdict-monitora .forecast-item-verdict { background: rgba(212,168,71,0.15); color: #8a6a1f; }
+.forecast-item.verdict-critico  .forecast-item-verdict { background: rgba(194,94,63,0.12); color: var(--clay); }
+
 .forecast-item-values {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 .forecast-item-ndvi {
   font-family: var(--font-mono);
-  font-size: 18px;
-  color: var(--moss-dk);
+  font-size: 20px;
+  color: var(--ink);
   font-weight: 600;
 }
 .forecast-item-range {
@@ -838,7 +842,7 @@ body::before {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 6px;
+  margin-top: 8px;
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--ink-soft);
@@ -856,34 +860,39 @@ body::before {
   background: var(--line);
 }
 .forecast-item-conf-dot.active { background: var(--moss); }
-.forecast-item.conf-medium .forecast-item-conf-dot.active { background: #d4a847; }
-.forecast-item.conf-low    .forecast-item-conf-dot.active { background: var(--clay); }
-.forecast-note {
-  margin-top: 14px;
-  padding: 10px 12px;
+.forecast-item.verdict-monitora .forecast-item-conf-dot.active { background: #d4a847; }
+.forecast-item.verdict-critico  .forecast-item-conf-dot.active { background: var(--clay); }
+
+.forecast-page-note {
+  margin: 0 22px 24px;
+  padding: 14px 16px;
   font-family: var(--font-sans);
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--ink-soft);
   background: var(--bg-tint);
-  border-radius: 8px;
+  border-radius: 10px;
 }
-.forecast-note strong {
+.forecast-page-note strong {
   color: var(--ink);
   font-weight: 600;
 }
-.forecast-empty {
-  font-family: var(--font-sans);
-  font-size: 13px;
-  color: var(--ink-soft);
+
+.forecast-empty-page {
+  margin: 0 22px 24px;
+  padding: 30px 20px;
   text-align: center;
-  padding: 18px 0;
-  line-height: 1.5;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  background: var(--bg-tint);
+  border-radius: 12px;
 }
 
 .action-row {
   margin: 0 22px 28px;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  display: grid; grid-template-columns: 1fr; gap: 10px;
 }
 .action-btn {
   padding: 16px 14px; background: var(--card);
@@ -1646,36 +1655,15 @@ body::before {
       <div class="chart-canvas-wrap"><canvas id="seasonChart"></canvas></div>
     </div>
 
-    <!-- ▼▼▼ PREVISIONI (collassabile) ▼▼▼ -->
-    <div class="forecast-card" id="forecast-card">
-      <button class="forecast-header" onclick="toggleForecast()" id="forecast-header-btn" aria-expanded="false">
-        <div class="forecast-header-left">
-          <span class="forecast-icon">📈</span>
-          <div>
-            <div class="forecast-title">Previsioni NDVI</div>
-            <div class="forecast-sub" id="forecast-header-sub">—</div>
-          </div>
-        </div>
-        <span class="forecast-toggle-arrow" id="forecast-arrow">▾</span>
-      </button>
-      <div class="forecast-body" id="forecast-body">
-        <div class="forecast-meta" id="forecast-meta">—</div>
-        <div class="forecast-items" id="forecast-items"></div>
-        <div class="forecast-note">
-          <strong>Come leggere queste previsioni:</strong> sono basate sull'ultima osservazione satellitare disponibile.
-          Per i giorni più lontani l'incertezza aumenta: l'intervallo di confidenza si allarga.
-          Le previsioni per date già passate non vengono mostrate.
-        </div>
-      </div>
-    </div>
-    <!-- ▲▲▲ PREVISIONI ▲▲▲ -->
-
     <div class="action-row">
       <button class="action-btn" onclick="goStorico()">
         <span class="action-btn-icon">📋</span>Storico azioni
       </button>
       <button class="action-btn" onclick="goPerche()">
         <span class="action-btn-icon">🔬</span>Dettaglio tecnico
+      </button>
+      <button class="action-btn" onclick="goForecast()">
+        <span class="action-btn-icon">📈</span>Previsioni NDVI
       </button>
     </div>
 
@@ -1742,6 +1730,61 @@ body::before {
 
     <div class="footer-mini">
       LE AZIONI SONO SALVATE SUL TUO TELEFONO
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PAGE FORECAST NDVI — pagina dedicata
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="page" id="page-forecast">
+    <div class="back-bar">
+      <button class="back-button" onclick="goDettaglio()">Indietro</button>
+    </div>
+
+    <div class="field-hero fade-in">
+      <div class="field-hero-name" id="forecast-name">—</div>
+      <div class="field-hero-meta">PREVISIONI VEGETAZIONE</div>
+    </div>
+
+    <div class="forecast-page fade-in">
+
+      <!-- Riepilogo di partenza: ultima osservazione -->
+      <div class="forecast-ref-card" id="forecast-ref-card">
+        <div class="forecast-ref-label">Basate sull'ultima osservazione satellitare</div>
+        <div class="forecast-ref-date" id="forecast-ref-date">—</div>
+        <div class="forecast-ref-ago" id="forecast-ref-ago">—</div>
+      </div>
+
+      <!-- Grafico continuo NDVI osservato + forecast -->
+      <div class="chart-card forecast-chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Andamento NDVI 2026</div>
+          <div class="chart-legend">
+            <span><span class="chart-legend-dot" style="background:var(--moss);"></span>Osservato</span>
+            <span><span class="chart-legend-line" style="background:var(--moss);"></span>Previsto</span>
+          </div>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="forecastChart"></canvas></div>
+      </div>
+
+      <!-- Lista verdetti per ogni forecast futuro -->
+      <div class="forecast-list-section" id="forecast-list-section">
+        <div class="forecast-list-title">Vegetazione attesa</div>
+        <div class="forecast-list" id="forecast-list"></div>
+      </div>
+
+      <!-- Note di lettura -->
+      <div class="forecast-page-note">
+        <strong>Come leggere queste previsioni.</strong>
+        Il modello stima il NDVI futuro a partire dall'ultima osservazione satellitare e dalle previsioni meteo.
+        L'incertezza aumenta nel tempo, perciò l'intervallo nei giorni più lontani è più ampio.
+        Il verdetto sulla vegetazione attesa è basato solo sul NDVI previsto: non considera lo stato gestionale
+        del pascolo (riposo, presenza di fieno) — quel contesto resta a giudizio dell'allevatore.
+      </div>
+    </div>
+
+    <div class="footer-mini">
+      MODELLO FORECAST · XGBOOST v1.1 IBRIDO + CONFORMAL 90%
     </div>
   </div>
 
@@ -2652,9 +2695,6 @@ function openField(id) {
   // Stress
   renderStress(id);
 
-  // Forecast NDVI (sezione collassabile)
-  renderForecast(id);
-
   // Recovery card (solo se in recupero)
   renderRecovery(id);
 
@@ -2957,110 +2997,261 @@ function toggleFieno() {
    FORECAST NDVI (sezione collassabile)
    ═══════════════════════════════════════════════════════════════ */
 
-function toggleForecast() {
-  const card = document.getElementById('forecast-card');
-  const btn  = document.getElementById('forecast-header-btn');
-  if (!card) return;
-  const isOpen = card.classList.toggle('expanded');
-  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-}
-
-function renderForecast(fieldId) {
-  const card = document.getElementById('forecast-card');
-  if (!card) return;
-  const itemsEl = document.getElementById('forecast-items');
-  const metaEl  = document.getElementById('forecast-meta');
-  const subEl   = document.getElementById('forecast-header-sub');
-
-  const all = dataCache.forecast_ndvi[fieldId] || [];
-
-  // Filtro Strada 2: mostra solo previsioni nel futuro reale
-  const futureForecasts = all
-    .filter(r => Number(r.days_in_future) > 0)
-    .sort((a, b) => Number(a.days_in_future) - Number(b.days_in_future));
-
-  // Caso: nessun forecast disponibile per questo campo
-  if (all.length === 0) {
-    subEl.textContent = 'Non disponibili';
-    metaEl.innerHTML = '';
-    itemsEl.innerHTML = `
-      <div class="forecast-empty">
-        Le previsioni per questo pascolo non sono ancora disponibili.
-        Verranno calcolate appena ci sarà un nuovo passaggio satellitare.
-      </div>
-    `;
-    return;
-  }
-
-  // Recupera riferimento temporale: tutti i forecast hanno lo stesso reference_date
-  const ref = all[0];
-  const refDate = ref.reference_date || '—';
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const refDateObj = new Date(refDate);
-  const daysSinceRef = Math.max(0, Math.round((today - refDateObj) / (24*60*60*1000)));
-
-  // Header collapsato: sintesi
-  if (futureForecasts.length === 0) {
-    subEl.textContent = `Ultimo passaggio: ${formatDateIT(refDate)}`;
-  } else {
-    subEl.textContent = `${futureForecasts.length} previsioni · fino a +${futureForecasts[futureForecasts.length-1].days_in_future}gg`;
-  }
-
-  // Body: meta
-  metaEl.innerHTML = `
-    Basate sull'ultima osservazione satellitare del <strong>${formatDateIT(refDate)}</strong>
-    ${daysSinceRef > 0 ? ` (${daysSinceRef} ${daysSinceRef === 1 ? 'giorno fa' : 'giorni fa'})` : ' (oggi)'}.
-  `;
-
-  // Body: items
-  if (futureForecasts.length === 0) {
-    itemsEl.innerHTML = `
-      <div class="forecast-empty">
-        Tutte le previsioni del modello cadono nel passato rispetto a oggi.
-        Servirà un nuovo passaggio Sentinel-2 per generare previsioni utili.
-      </div>
-    `;
-    return;
-  }
-
-  itemsEl.innerHTML = futureForecasts.map(r => {
-    const dif    = Number(r.days_in_future);
-    const ndvi   = Number(r.mean_ndvi_forecast).toFixed(2);
-    const lo     = Number(r.ndvi_lower_90).toFixed(2);
-    const hi     = Number(r.ndvi_upper_90).toFixed(2);
-    const conf   = (r.confidence || 'medium').toLowerCase();
-    const confDots = conf === 'high' ? 3 : (conf === 'medium' ? 2 : 1);
-    const confLabel = conf === 'high' ? 'Alta' : (conf === 'medium' ? 'Media' : 'Bassa');
-    const dateStr = formatDateIT(r.date_forecast);
-    const whenLabel = `+${dif} ${dif === 1 ? 'giorno' : 'giorni'}`;
-    const dotsHTML = [0,1,2].map(i => `<span class="forecast-item-conf-dot ${i < confDots ? 'active' : ''}"></span>`).join('');
-
-    return `
-      <div class="forecast-item conf-${conf}">
-        <div class="forecast-item-header">
-          <div class="forecast-item-when">${whenLabel}</div>
-          <div class="forecast-item-date">${dateStr}</div>
-        </div>
-        <div class="forecast-item-values">
-          <div class="forecast-item-ndvi">NDVI ${ndvi}</div>
-          <div class="forecast-item-range">tra ${lo} e ${hi}</div>
-        </div>
-        <div class="forecast-item-conf">
-          <span>Affidabilità: ${confLabel}</span>
-          <span class="forecast-item-conf-dots">${dotsHTML}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
 function formatDateIT(isoDate) {
   if (!isoDate) return '—';
   const d = new Date(isoDate);
   if (isNaN(d.getTime())) return isoDate;
   const months = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/* Verdetto vegetazione attesa basato SOLO su NDVI previsto.
+   Soglie allineate a computeFieldStatus() ma semplificate (no contesto gestionale).
+   Etichetto come "Vegetazione attesa" per onestà semantica. */
+function vegetazioneAttesaFromNdvi(ndvi) {
+  if (ndvi == null || isNaN(ndvi)) return { label: 'N/D', key: 'monitora' };
+  if (ndvi >= 0.70) return { label: 'Ottima',   key: 'ottimo'   };
+  if (ndvi >= 0.55) return { label: 'Buona',    key: 'buono'    };
+  if (ndvi >= 0.40) return { label: 'Da monitorare', key: 'monitora' };
+  return                    { label: 'Critica',  key: 'critico'  };
+}
+
+function goForecast() {
+  if (!currentFieldId) return;
+  renderForecastPage(currentFieldId);
+  showPage('page-forecast');
+}
+
+function renderForecastPage(fieldId) {
+  // Nome campo
+  const f = FIELDS.find(x => x.id === fieldId);
+  document.getElementById('forecast-name').textContent = f ? f.name : '—';
+
+  const all = dataCache.forecast_ndvi[fieldId] || [];
+  const refCard  = document.getElementById('forecast-ref-card');
+  const refDateEl = document.getElementById('forecast-ref-date');
+  const refAgoEl  = document.getElementById('forecast-ref-ago');
+  const listEl    = document.getElementById('forecast-list');
+  const listSection = document.getElementById('forecast-list-section');
+
+  // Caso: nessun forecast disponibile
+  if (all.length === 0) {
+    refDateEl.textContent = 'Non ancora disponibili';
+    refAgoEl.textContent = '';
+    listEl.innerHTML = `
+      <div class="forecast-empty-page">
+        Le previsioni per questo pascolo non sono ancora state generate.
+        Verranno calcolate al prossimo aggiornamento giornaliero.
+      </div>
+    `;
+    // Pulisco il grafico se esisteva
+    renderForecastChart(fieldId, []);
+    return;
+  }
+
+  // Riferimento temporale
+  const refDateIso = all[0].reference_date;
+  const refDate = new Date(refDateIso);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  refDate.setHours(0,0,0,0);
+  const daysAgo = Math.max(0, Math.round((today - refDate) / (24*60*60*1000)));
+
+  refDateEl.textContent = formatDateIT(refDateIso);
+  if (daysAgo === 0) {
+    refAgoEl.textContent = 'Oggi';
+  } else if (daysAgo === 1) {
+    refAgoEl.textContent = '1 giorno fa';
+  } else {
+    refAgoEl.textContent = `${daysAgo} giorni fa`;
+  }
+
+  // Filtro Strada 2: solo forecast nel futuro reale (days_in_future > 0)
+  const futureForecasts = all
+    .filter(r => Number(r.days_in_future) > 0)
+    .sort((a, b) => Number(a.days_in_future) - Number(b.days_in_future));
+
+  // Rendering lista verdetti
+  if (futureForecasts.length === 0) {
+    listEl.innerHTML = `
+      <div class="forecast-empty-page">
+        Tutte le previsioni del modello cadono nel passato rispetto a oggi.
+        Servirà un nuovo passaggio Sentinel-2 per generare previsioni utili nei prossimi giorni.
+      </div>
+    `;
+  } else {
+    listEl.innerHTML = futureForecasts.map(r => {
+      const dif = Number(r.days_in_future);
+      const ndvi = Number(r.mean_ndvi_forecast);
+      const lo = Number(r.ndvi_lower_90);
+      const hi = Number(r.ndvi_upper_90);
+      const conf = (r.confidence || 'medium').toLowerCase();
+      const confDots = conf === 'high' ? 3 : (conf === 'medium' ? 2 : 1);
+      const confLabel = conf === 'high' ? 'Alta' : (conf === 'medium' ? 'Media' : 'Bassa');
+      const verdetto = vegetazioneAttesaFromNdvi(ndvi);
+      const dateStr = formatDateIT(r.date_forecast);
+      const whenLabel = dif === 1 ? '+1 giorno' : `+${dif} giorni`;
+      const dotsHTML = [0,1,2].map(i =>
+        `<span class="forecast-item-conf-dot ${i < confDots ? 'active' : ''}"></span>`
+      ).join('');
+
+      return `
+        <div class="forecast-item verdict-${verdetto.key}">
+          <div class="forecast-item-top">
+            <div class="forecast-item-when">${whenLabel}</div>
+            <div class="forecast-item-date">${dateStr}</div>
+          </div>
+          <div class="forecast-item-verdict">Vegetazione attesa: ${verdetto.label}</div>
+          <div class="forecast-item-values">
+            <div class="forecast-item-ndvi">NDVI ${ndvi.toFixed(2)}</div>
+            <div class="forecast-item-range">tra ${lo.toFixed(2)} e ${hi.toFixed(2)}</div>
+          </div>
+          <div class="forecast-item-conf">
+            <span>Affidabilità: ${confLabel}</span>
+            <span class="forecast-item-conf-dots">${dotsHTML}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Grafico continuo NDVI osservato + forecast prolungamento
+  renderForecastChart(fieldId, futureForecasts);
+}
+
+let forecastChartInstance = null;
+
+function renderForecastChart(fieldId, futureForecasts) {
+  const canvas = document.getElementById('forecastChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  // Distruggo precedente per evitare leak
+  if (forecastChartInstance) {
+    forecastChartInstance.destroy();
+    forecastChartInstance = null;
+  }
+
+  // Dati osservati 2026
+  const ndviObs = (dataCache.ndvi[fieldId] || [])
+    .filter(r => r.mean_ndvi !== null && !isNaN(Number(r.mean_ndvi)))
+    .map(r => ({ x: r.date, y: Number(r.mean_ndvi) }))
+    .sort((a, b) => new Date(a.x) - new Date(b.x));
+
+  // Trovo l'ultima data osservata: serve come ponte tra osservato e forecast
+  const lastObs = ndviObs.length > 0 ? ndviObs[ndviObs.length - 1] : null;
+
+  // Dati forecast: prolungamento dalla last obs
+  const forecastPoints = futureForecasts.map(r => ({
+    x: r.date_forecast,
+    y: Number(r.mean_ndvi_forecast),
+    lo: Number(r.ndvi_lower_90),
+    hi: Number(r.ndvi_upper_90),
+  }));
+
+  // Linea forecast continua = parte dall'ultima obs e arriva ai forecast
+  const forecastLine = lastObs ? [lastObs, ...forecastPoints] : forecastPoints;
+
+  // Banda conformal: due serie (lower e upper) che vanno dalla last obs alle bande forecast
+  const bandLower = lastObs
+    ? [{ x: lastObs.x, y: lastObs.y }, ...forecastPoints.map(p => ({ x: p.x, y: p.lo }))]
+    : forecastPoints.map(p => ({ x: p.x, y: p.lo }));
+  const bandUpper = lastObs
+    ? [{ x: lastObs.x, y: lastObs.y }, ...forecastPoints.map(p => ({ x: p.x, y: p.hi }))]
+    : forecastPoints.map(p => ({ x: p.x, y: p.hi }));
+
+  forecastChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [
+        // Banda upper (riempimento verso il basso)
+        {
+          label: 'Banda 90% upper',
+          data: bandUpper,
+          borderColor: 'transparent',
+          backgroundColor: 'rgba(74,107,58,0.10)',
+          pointRadius: 0,
+          fill: '+1',           // riempie fino al dataset successivo (lower)
+          tension: 0.25,
+          order: 3,
+        },
+        // Banda lower
+        {
+          label: 'Banda 90% lower',
+          data: bandLower,
+          borderColor: 'transparent',
+          backgroundColor: 'transparent',
+          pointRadius: 0,
+          fill: false,
+          tension: 0.25,
+          order: 3,
+        },
+        // Linea forecast tratteggiata
+        {
+          label: 'Previsto',
+          data: forecastLine,
+          borderColor: 'rgba(74,107,58,0.85)',
+          borderWidth: 2,
+          borderDash: [6, 4],
+          backgroundColor: 'transparent',
+          pointRadius: ctx => {
+            // Punto solo sui forecast veri, non sul ponte (lastObs)
+            const idx = ctx.dataIndex;
+            if (lastObs && idx === 0) return 0;
+            return 4;
+          },
+          pointBackgroundColor: 'rgba(74,107,58,0.85)',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1.5,
+          tension: 0.25,
+          order: 2,
+        },
+        // Linea osservata continua
+        {
+          label: 'Osservato',
+          data: ndviObs,
+          borderColor: 'rgba(74,107,58,1)',
+          borderWidth: 2,
+          backgroundColor: 'transparent',
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          tension: 0.25,
+          order: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => formatDateIT(items[0].parsed.x),
+            label: ctx => {
+              const dsLabel = ctx.dataset.label || '';
+              if (dsLabel.startsWith('Banda')) return null;
+              return `${dsLabel}: NDVI ${ctx.parsed.y.toFixed(3)}`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          type: 'time',
+          time: { unit: 'month', tooltipFormat: 'dd MMM yyyy' },
+          grid: { display: false },
+          ticks: { font: { family: "'DM Mono', monospace", size: 10 }, color: 'rgba(60,60,55,0.55)' },
+        },
+        y: {
+          min: 0, max: 1,
+          grid: { color: 'rgba(60,60,55,0.06)' },
+          ticks: { font: { family: "'DM Mono', monospace", size: 10 }, color: 'rgba(60,60,55,0.55)', stepSize: 0.2 },
+        },
+      },
+    },
+  });
 }
 
 function renderStress(fieldId) {
