@@ -711,6 +711,176 @@ body::before {
 .chart-canvas-wrap { position: relative; height: 180px; }
 
 /* ACTIONS */
+/* FORECAST (sezione collassabile) */
+.forecast-card {
+  margin: 0 22px 24px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.forecast-header {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.forecast-header:hover {
+  background: var(--bg-tint);
+}
+.forecast-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.forecast-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+.forecast-title {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.forecast-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-soft);
+  letter-spacing: 0.06em;
+  margin-top: 3px;
+  text-transform: uppercase;
+}
+.forecast-toggle-arrow {
+  font-size: 18px;
+  color: var(--ink-soft);
+  transition: transform 0.25s ease;
+}
+.forecast-card.expanded .forecast-toggle-arrow {
+  transform: rotate(180deg);
+}
+.forecast-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.25s ease;
+  padding: 0 18px;
+}
+.forecast-card.expanded .forecast-body {
+  max-height: 2000px;
+  padding: 0 18px 18px;
+}
+.forecast-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  background: var(--bg-tint);
+  border-radius: 8px;
+  line-height: 1.6;
+}
+.forecast-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.forecast-item {
+  padding: 14px;
+  background: var(--bg-tint);
+  border-left: 3px solid var(--moss);
+  border-radius: 8px;
+}
+.forecast-item.conf-medium { border-left-color: #d4a847; }
+.forecast-item.conf-low    { border-left-color: var(--clay); }
+.forecast-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.forecast-item-when {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.forecast-item-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.forecast-item-values {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+.forecast-item-ndvi {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--moss-dk);
+  font-weight: 600;
+}
+.forecast-item-range {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.forecast-item-conf {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-soft);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.forecast-item-conf-dots {
+  display: inline-flex;
+  gap: 2px;
+}
+.forecast-item-conf-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line);
+}
+.forecast-item-conf-dot.active { background: var(--moss); }
+.forecast-item.conf-medium .forecast-item-conf-dot.active { background: #d4a847; }
+.forecast-item.conf-low    .forecast-item-conf-dot.active { background: var(--clay); }
+.forecast-note {
+  margin-top: 14px;
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  background: var(--bg-tint);
+  border-radius: 8px;
+}
+.forecast-note strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.forecast-empty {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-align: center;
+  padding: 18px 0;
+  line-height: 1.5;
+}
+
 .action-row {
   margin: 0 22px 28px;
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
@@ -1476,6 +1646,30 @@ body::before {
       <div class="chart-canvas-wrap"><canvas id="seasonChart"></canvas></div>
     </div>
 
+    <!-- ▼▼▼ PREVISIONI (collassabile) ▼▼▼ -->
+    <div class="forecast-card" id="forecast-card">
+      <button class="forecast-header" onclick="toggleForecast()" id="forecast-header-btn" aria-expanded="false">
+        <div class="forecast-header-left">
+          <span class="forecast-icon">📈</span>
+          <div>
+            <div class="forecast-title">Previsioni NDVI</div>
+            <div class="forecast-sub" id="forecast-header-sub">—</div>
+          </div>
+        </div>
+        <span class="forecast-toggle-arrow" id="forecast-arrow">▾</span>
+      </button>
+      <div class="forecast-body" id="forecast-body">
+        <div class="forecast-meta" id="forecast-meta">—</div>
+        <div class="forecast-items" id="forecast-items"></div>
+        <div class="forecast-note">
+          <strong>Come leggere queste previsioni:</strong> sono basate sull'ultima osservazione satellitare disponibile.
+          Per i giorni più lontani l'incertezza aumenta: l'intervallo di confidenza si allarga.
+          Le previsioni per date già passate non vengono mostrate.
+        </div>
+      </div>
+    </div>
+    <!-- ▲▲▲ PREVISIONI ▲▲▲ -->
+
     <div class="action-row">
       <button class="action-btn" onclick="goStorico()">
         <span class="action-btn-icon">📋</span>Storico azioni
@@ -1686,7 +1880,8 @@ function getFieldState(id) {
 let dataCache = {
   ndvi: {},      // { pascolo_1: [{date, mean_ndvi, mean_ndwi, source, ...}, ...] }
   meteo: {},     // { pascolo_1: [{date, rain_mm, temp_c}, ...] }
-  forecast: {},  // { pascolo_1: [{label, icon, tMax, tMin, rain}, ...] }
+  forecast: {},  // { pascolo_1: [{label, icon, tMax, tMin, rain}, ...] }   ← meteo forecast
+  forecast_ndvi: {}, // { pascolo_1: [{horizon_days, days_in_future, mean_ndvi_forecast, ...}, ...] }
   fieldStatus: {}, // { pascolo_1: 'ottimo' / 'monitora' / 'critico' / 'recupero' }
   lastUpdate: null,
 };
@@ -1748,6 +1943,10 @@ async function loadAllData() {
       }),
       fetchCSV(`${REPO_RAW}/ndvi/ndvi_${f.id}_${CURRENT_YEAR-1}.csv`).then(d => {
         if (d) dataCache.ndvi[`${f.id}_prev`] = d;
+      }),
+      // Forecast NDVI giornaliero generato dal modello v1.1 ibrido
+      fetchCSV(`${REPO_RAW}/forecast_ndvi/forecast_${f.id}.csv`).then(d => {
+        if (d) dataCache.forecast_ndvi[f.id] = d;
       }),
     );
   }
@@ -2453,6 +2652,9 @@ function openField(id) {
   // Stress
   renderStress(id);
 
+  // Forecast NDVI (sezione collassabile)
+  renderForecast(id);
+
   // Recovery card (solo se in recupero)
   renderRecovery(id);
 
@@ -2749,6 +2951,116 @@ function toggleFieno() {
     pushEvent(currentFieldId, 'update',
       fs.hasFieno ? 'Fieno integrativo attivato' : 'Fieno integrativo disattivato');
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FORECAST NDVI (sezione collassabile)
+   ═══════════════════════════════════════════════════════════════ */
+
+function toggleForecast() {
+  const card = document.getElementById('forecast-card');
+  const btn  = document.getElementById('forecast-header-btn');
+  if (!card) return;
+  const isOpen = card.classList.toggle('expanded');
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+}
+
+function renderForecast(fieldId) {
+  const card = document.getElementById('forecast-card');
+  if (!card) return;
+  const itemsEl = document.getElementById('forecast-items');
+  const metaEl  = document.getElementById('forecast-meta');
+  const subEl   = document.getElementById('forecast-header-sub');
+
+  const all = dataCache.forecast_ndvi[fieldId] || [];
+
+  // Filtro Strada 2: mostra solo previsioni nel futuro reale
+  const futureForecasts = all
+    .filter(r => Number(r.days_in_future) > 0)
+    .sort((a, b) => Number(a.days_in_future) - Number(b.days_in_future));
+
+  // Caso: nessun forecast disponibile per questo campo
+  if (all.length === 0) {
+    subEl.textContent = 'Non disponibili';
+    metaEl.innerHTML = '';
+    itemsEl.innerHTML = `
+      <div class="forecast-empty">
+        Le previsioni per questo pascolo non sono ancora disponibili.
+        Verranno calcolate appena ci sarà un nuovo passaggio satellitare.
+      </div>
+    `;
+    return;
+  }
+
+  // Recupera riferimento temporale: tutti i forecast hanno lo stesso reference_date
+  const ref = all[0];
+  const refDate = ref.reference_date || '—';
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const refDateObj = new Date(refDate);
+  const daysSinceRef = Math.max(0, Math.round((today - refDateObj) / (24*60*60*1000)));
+
+  // Header collapsato: sintesi
+  if (futureForecasts.length === 0) {
+    subEl.textContent = `Ultimo passaggio: ${formatDateIT(refDate)}`;
+  } else {
+    subEl.textContent = `${futureForecasts.length} previsioni · fino a +${futureForecasts[futureForecasts.length-1].days_in_future}gg`;
+  }
+
+  // Body: meta
+  metaEl.innerHTML = `
+    Basate sull'ultima osservazione satellitare del <strong>${formatDateIT(refDate)}</strong>
+    ${daysSinceRef > 0 ? ` (${daysSinceRef} ${daysSinceRef === 1 ? 'giorno fa' : 'giorni fa'})` : ' (oggi)'}.
+  `;
+
+  // Body: items
+  if (futureForecasts.length === 0) {
+    itemsEl.innerHTML = `
+      <div class="forecast-empty">
+        Tutte le previsioni del modello cadono nel passato rispetto a oggi.
+        Servirà un nuovo passaggio Sentinel-2 per generare previsioni utili.
+      </div>
+    `;
+    return;
+  }
+
+  itemsEl.innerHTML = futureForecasts.map(r => {
+    const dif    = Number(r.days_in_future);
+    const ndvi   = Number(r.mean_ndvi_forecast).toFixed(2);
+    const lo     = Number(r.ndvi_lower_90).toFixed(2);
+    const hi     = Number(r.ndvi_upper_90).toFixed(2);
+    const conf   = (r.confidence || 'medium').toLowerCase();
+    const confDots = conf === 'high' ? 3 : (conf === 'medium' ? 2 : 1);
+    const confLabel = conf === 'high' ? 'Alta' : (conf === 'medium' ? 'Media' : 'Bassa');
+    const dateStr = formatDateIT(r.date_forecast);
+    const whenLabel = `+${dif} ${dif === 1 ? 'giorno' : 'giorni'}`;
+    const dotsHTML = [0,1,2].map(i => `<span class="forecast-item-conf-dot ${i < confDots ? 'active' : ''}"></span>`).join('');
+
+    return `
+      <div class="forecast-item conf-${conf}">
+        <div class="forecast-item-header">
+          <div class="forecast-item-when">${whenLabel}</div>
+          <div class="forecast-item-date">${dateStr}</div>
+        </div>
+        <div class="forecast-item-values">
+          <div class="forecast-item-ndvi">NDVI ${ndvi}</div>
+          <div class="forecast-item-range">tra ${lo} e ${hi}</div>
+        </div>
+        <div class="forecast-item-conf">
+          <span>Affidabilità: ${confLabel}</span>
+          <span class="forecast-item-conf-dots">${dotsHTML}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function formatDateIT(isoDate) {
+  if (!isoDate) return '—';
+  const d = new Date(isoDate);
+  if (isNaN(d.getTime())) return isoDate;
+  const months = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 function renderStress(fieldId) {
