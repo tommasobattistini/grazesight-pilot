@@ -3150,9 +3150,17 @@ function renderForecastChart(fieldId, futureForecasts) {
   };
 
   // Dati osservati 2026 ordinati per data
+  // FILTRO: tengo solo gli ultimi 60 giorni rispetto a oggi, così il grafico
+  // si concentra sulla zona vicina al forecast (chiave UX della pagina previsioni).
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const windowStart = new Date(today);
+  windowStart.setDate(windowStart.getDate() - 60);
+
   const ndviObs = (dataCache.ndvi[fieldId] || [])
     .filter(r => r.mean_ndvi !== null && !isNaN(Number(r.mean_ndvi)) && r.date)
     .map(r => ({ date: r.date, value: Number(r.mean_ndvi) }))
+    .filter(p => new Date(p.date) >= windowStart)
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
   if (ndviObs.length === 0 && futureForecasts.length === 0) {
@@ -3182,8 +3190,21 @@ function renderForecastChart(fieldId, futureForecasts) {
     hi:  Number(r.ndvi_upper_90),
   }]));
 
-  // Etichette mostrate sull'asse X (date abbreviate)
-  const labels = uniqDatesISO.map(dateShort);
+  // Etichette mostrate sull'asse X: mostro la data solo se "settimanale"
+  // (lunedì) oppure se è la data dell'ultima osservazione o di un forecast.
+  // Le altre celle restano vuote per non affollare l'asse.
+  const lastObsISO_forLabel = ndviObs.length > 0 ? ndviObs[ndviObs.length - 1].date : null;
+  const forecastDatesSet = new Set(futureForecasts.map(r => r.date_forecast));
+  const labels = uniqDatesISO.map(dISO => {
+    const d = new Date(dISO);
+    const isMonday = d.getDay() === 1;
+    const isAnchor = dISO === lastObsISO_forLabel;
+    const isForecast = forecastDatesSet.has(dISO);
+    if (isMonday || isAnchor || isForecast) {
+      return dateShort(dISO);
+    }
+    return '';
+  });
 
   // Serie 1: osservato (null dove non c'è dato osservato)
   const observedData = uniqDatesISO.map(d => obsMap.has(d) ? obsMap.get(d) : null);
@@ -3306,8 +3327,9 @@ function renderForecastChart(fieldId, futureForecasts) {
               font: { family: "'DM Mono', monospace", size: 9 },
               color: 'rgba(60,60,55,0.55)',
               maxRotation: 0,
-              autoSkip: true,
-              maxTicksLimit: 8,
+              autoSkip: false,
+              // Mostriamo solo le labels non-vuote: Chart.js disegna comunque tutti
+              // i punti, ma sull'asse si vede solo dove c'è testo.
             },
           },
           y: {
