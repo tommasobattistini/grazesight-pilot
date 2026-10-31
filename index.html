@@ -1179,6 +1179,13 @@ body::before {
    STORICO AZIONI — eventi gestionali
    ═══════════════════════════════════════════════════════════════ */
 
+.history-export-button {
+  display: block; width: 100%; margin: 18px 0 6px; padding: 12px;
+  background: transparent; border: 1px dashed var(--line-strong); border-radius: 12px;
+  font-family: var(--font-sans); font-size: 13px; font-weight: 600; color: var(--ink-soft);
+  cursor: pointer;
+}
+.history-export-msg { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); text-align: center; min-height: 14px; }
 .history-add-button {
   width: 100%;
   margin: 0 0 18px;
@@ -1772,6 +1779,8 @@ body::before {
       <div class="history-list" id="history-list">
         <!-- popolato da JS -->
       </div>
+      <button class="history-export-button" onclick="exportAllEvents()">⇩ Esporta storico di tutti i pascoli (CSV)</button>
+      <div class="history-export-msg" id="history-export-msg"></div>
     </div>
 
     <div class="footer-mini">
@@ -4172,6 +4181,53 @@ function renderStoricoPage(fieldId) {
       </div>
     `;
   }).join('');
+}
+
+// Esporta lo storico di TUTTI i pascoli in CSV (salvato solo sul telefono, localStorage)
+async function exportAllEvents() {
+  const msg = document.getElementById('history-export-msg');
+  const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const rows = [['campo', 'data', 'tipo', 'azione', 'dettaglio', 'automatico', 'registrato_il']];
+  Object.keys(FIELD_EVENTS).sort().forEach(fid => {
+    [...FIELD_EVENTS[fid]]
+      .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+      .forEach(e => rows.push([fid, e.date, e.type, (EVENT_META[e.type] || EVENT_META.note).label,
+                               e.detail, e.auto ? 'si' : 'no', e.createdAt]));
+  });
+  if (rows.length === 1) { msg.textContent = 'Nessuna azione registrata su questo telefono.'; return; }
+
+  const csv = '\uFEFF' + rows.map(r => r.map(q).join(';')).join('\n');
+  const name = `storico_pascoli_${new Date().toISOString().slice(0, 10)}.csv`;
+  const n = rows.length - 1;
+
+  // 1) Condivisione nativa (WhatsApp, email, Drive…) se il telefono la supporta
+  try {
+    const file = new File([csv], name, { type: 'text/csv' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'Storico pascoli' });
+      msg.textContent = `${n} azioni esportate.`;
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') { msg.textContent = ''; return; }
+  }
+  // 2) Download del file
+  try {
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    msg.textContent = `${n} azioni esportate in ${name}.`;
+    return;
+  } catch (e) {}
+  // 3) Copia negli appunti
+  try {
+    await navigator.clipboard.writeText(csv);
+    msg.textContent = `${n} azioni copiate: incollale in un messaggio.`;
+  } catch (e) {
+    msg.textContent = 'Esportazione non riuscita su questo browser.';
+  }
 }
 
 function escapeHTML(s) {
