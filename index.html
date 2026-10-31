@@ -711,6 +711,49 @@ body::before {
 .chart-canvas-wrap { position: relative; height: 180px; }
 
 /* ACTIONS */
+/* ZONE PAGE (mappa dentro il pascolo) */
+.zones-toggle {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  background: var(--bg-tint); padding: 4px; border-radius: 12px;
+  margin: 0 22px 14px;
+}
+.zones-map-card {
+  position: relative; margin: 0 22px 12px;
+  border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+  background: var(--bg-tint);
+}
+#zones-map { height: 360px; width: 100%; }
+.zones-map-loading {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft);
+  background: var(--bg-tint); z-index: 500; text-align: center; padding: 20px; line-height: 1.5;
+}
+.zones-map-loading.hidden { display: none; }
+.zones-legend {
+  margin: 0 22px 6px; display: flex; flex-wrap: wrap; gap: 8px 14px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft);
+}
+.zones-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.zones-legend i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0,0,0,0.12); }
+.zones-legend .zl-gradient { width: 90px; height: 10px; border-radius: 3px; }
+.zones-caption {
+  margin: 0 22px 18px; font-family: var(--font-mono); font-size: 10px;
+  color: var(--ink-faint); letter-spacing: 0.04em; text-transform: uppercase;
+}
+.zones-summary-card {
+  margin: 0 22px 18px; padding: 16px 18px; background: var(--card);
+  border: 1px solid var(--line); border-left: 4px solid var(--moss); border-radius: 12px;
+}
+.zones-summary-card.has-low { border-left-color: var(--amber); }
+.zones-summary-label {
+  font-family: var(--font-mono); font-size: 10px; color: var(--ink-soft);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;
+}
+.zones-summary-text { font-family: var(--font-sans); font-size: 14px; line-height: 1.55; color: var(--ink-mid); }
+.zones-note em { font-style: normal; font-weight: 600; color: var(--ink); }
+.zones-popup { font-family: var(--font-sans); font-size: 12px; line-height: 1.5; }
+.zones-popup b { font-family: var(--font-mono); }
+
 /* FORECAST PAGE (pagina dedicata) */
 .forecast-page {
   padding: 0;
@@ -1665,6 +1708,9 @@ body::before {
       <button class="action-btn" onclick="goForecast()">
         <span class="action-btn-icon">📈</span>Previsioni NDVI
       </button>
+      <button class="action-btn" onclick="goZones()">
+        <span class="action-btn-icon">🗺️</span>Mappa del pascolo
+      </button>
     </div>
 
     <div class="footer-mini" id="detail-freshness">CARICAMENTO...</div>
@@ -1786,6 +1832,51 @@ body::before {
     <div class="footer-mini">
       MODELLO FORECAST · XGBOOST v1.1 IBRIDO + CONFORMAL 90%
     </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PAGE ZONE — mappa dentro il pascolo (pixel Sentinel-2 da 10 m)
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="page" id="page-zones">
+    <div class="back-bar">
+      <button class="back-button" onclick="goDettaglio()">Indietro</button>
+    </div>
+
+    <div class="field-hero fade-in">
+      <div class="field-hero-name" id="zones-name">—</div>
+      <div class="field-hero-meta">DENTRO IL PASCOLO</div>
+    </div>
+
+    <div class="zones-page fade-in">
+      <div class="zones-toggle">
+        <button class="status-btn active" data-zview="ricorrenti" onclick="setZonesView('ricorrenti')">Zone ricorrenti</button>
+        <button class="status-btn" data-zview="adesso" onclick="setZonesView('adesso')">Adesso</button>
+      </div>
+
+      <div class="zones-map-card">
+        <div id="zones-map"></div>
+        <div class="zones-map-loading" id="zones-loading">Caricamento mappa…</div>
+      </div>
+
+      <div class="zones-legend" id="zones-legend"></div>
+      <div class="zones-caption" id="zones-caption"></div>
+
+      <div class="zones-summary-card" id="zones-summary">
+        <div class="zones-summary-label">Cosa dicono i dati</div>
+        <div class="zones-summary-text" id="zones-summary-text">—</div>
+      </div>
+
+      <div class="forecast-page-note zones-note">
+        <strong>Come leggere la mappa.</strong>
+        Ogni quadrato è un pixel del satellite Sentinel-2, circa 10 × 10 metri. I pixel sul bordo sono esclusi
+        perché mescolano erba con siepi e strade.
+        <em>Zone ricorrenti</em> confronta ogni quadrato con la media del campo in tutte le immagini pulite
+        delle ultime stagioni (aprile-ottobre): conta solo ciò che si ripete, non il singolo giorno.
+        <em>Adesso</em> mostra l'ultima immagine pulita disponibile. Tocca un quadrato per i dettagli.
+      </div>
+    </div>
+
+    <div class="footer-mini" id="zones-footer">SENTINEL-2 · 10 M · CLOUD SCORE+</div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════
@@ -3542,6 +3633,165 @@ function goStorico() {
   renderStoricoPage(currentFieldId);
   showPage('page-storico');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ZONE — mappa dentro il pascolo (idea 22)
+   Dati: pascoli-data/zones/zones_<campo>.json (scripts/extract_zones.py)
+   pixel = [lat, lon, ndvi_latest, anom_mean, frac_below, n_obs, zone]
+   zone: 1 = sempre sotto la media, 2 = sempre sopra, 0 = nella media, -1 = dati insufficienti
+   ═══════════════════════════════════════════════════════════════ */
+
+let zonesMap = null;
+let zonesLayer = null;
+let zonesView = 'ricorrenti';
+const zonesCache = {};
+
+const ZONE_STYLE = {
+  1:  { color: '#c8642d', label: 'Sempre meno verde della media' },
+  2:  { color: '#3f8f2f', label: 'Sempre più verde della media' },
+  0:  { color: '#efe9d8', label: 'Nella media' },
+  '-1': { color: '#9a9080', label: 'Dati insufficienti' },
+};
+
+// Scala NDVI per la vista "Adesso" (marrone → verde scuro)
+const NDVI_STOPS = [
+  [0.20, [140, 81, 10]], [0.40, [223, 194, 125]], [0.55, [199, 233, 192]],
+  [0.70, [65, 171, 93]], [0.85, [0, 68, 27]],
+];
+function ndviColor(v) {
+  if (v == null) return '#9a9080';
+  if (v <= NDVI_STOPS[0][0]) return `rgb(${NDVI_STOPS[0][1].join(',')})`;
+  for (let i = 1; i < NDVI_STOPS.length; i++) {
+    const [x1, c1] = NDVI_STOPS[i];
+    const [x0, c0] = NDVI_STOPS[i - 1];
+    if (v <= x1) {
+      const t = (v - x0) / (x1 - x0);
+      return `rgb(${c0.map((c, k) => Math.round(c + t * (c1[k] - c))).join(',')})`;
+    }
+  }
+  return `rgb(${NDVI_STOPS[NDVI_STOPS.length - 1][1].join(',')})`;
+}
+
+async function loadZones(fieldId) {
+  if (zonesCache[fieldId] !== undefined) return zonesCache[fieldId];
+  try {
+    const res = await fetch(`${REPO_RAW}/zones/zones_${fieldId}.json`, { cache: 'no-cache' });
+    zonesCache[fieldId] = res.ok ? await res.json() : null;
+  } catch (e) {
+    console.error('loadZones', e);
+    zonesCache[fieldId] = null;
+  }
+  return zonesCache[fieldId];
+}
+
+function goZones() {
+  if (!currentFieldId) return;
+  const f = FIELDS.find(x => x.id === currentFieldId);
+  document.getElementById('zones-name').textContent = f ? f.name : '—';
+  showPage('page-zones');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  setTimeout(() => renderZonesPage(currentFieldId), 60);
+}
+
+function setZonesView(view) {
+  zonesView = view;
+  document.querySelectorAll('.zones-toggle .status-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.zview === view));
+  if (currentFieldId) renderZonesPage(currentFieldId);
+}
+
+function ensureZonesMap() {
+  if (zonesMap) { zonesMap.invalidateSize(); return; }
+  zonesMap = L.map('zones-map', { zoomControl: true, attributionControl: true, preferCanvas: true });
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles © Esri', maxZoom: 20, maxNativeZoom: 19,
+  }).addTo(zonesMap);
+  zonesLayer = L.layerGroup().addTo(zonesMap);
+}
+
+async function renderZonesPage(fieldId) {
+  const loading = document.getElementById('zones-loading');
+  const summaryEl = document.getElementById('zones-summary-text');
+  const summaryCard = document.getElementById('zones-summary');
+  const legendEl = document.getElementById('zones-legend');
+  const captionEl = document.getElementById('zones-caption');
+
+  loading.classList.remove('hidden');
+  loading.textContent = 'Caricamento mappa…';
+  ensureZonesMap();
+
+  const f = FIELDS.find(x => x.id === fieldId);
+  const outline = f ? f.coords.map(c => [c[1], c[0]]) : null;
+
+  const data = await loadZones(fieldId);
+  if (fieldId !== currentFieldId) return;   // l'utente ha cambiato campo nel frattempo
+
+  zonesLayer.clearLayers();
+  if (outline) {
+    L.polygon(outline, { color: '#ffffff', weight: 2, fill: false, dashArray: '4 4', interactive: false })
+      .addTo(zonesLayer);
+    zonesMap.fitBounds(L.latLngBounds(outline), { padding: [16, 16] });
+  }
+
+  if (!data || !data.pixels || !data.pixels.length) {
+    loading.textContent = 'La mappa di questo pascolo non è ancora disponibile. Verrà calcolata al prossimo aggiornamento.';
+    summaryEl.textContent = '—';
+    legendEl.innerHTML = '';
+    captionEl.textContent = '';
+    return;
+  }
+  loading.classList.add('hidden');
+
+  const half = (data.pixel_size_m || 10) / 2;
+  const renderer = L.canvas({ padding: 0.3 });
+
+  data.pixels.forEach(p => {
+    const [lat, lon, ndvi, anom, fracBelow, nObs, zone] = p;
+    const dLat = half / 111320;
+    const dLon = half / (111320 * Math.cos(lat * Math.PI / 180));
+    const bounds = [[lat - dLat, lon - dLon], [lat + dLat, lon + dLon]];
+
+    let fill, opacity;
+    if (zonesView === 'adesso') {
+      fill = ndviColor(ndvi);
+      opacity = ndvi == null ? 0.25 : 0.85;
+    } else {
+      fill = (ZONE_STYLE[zone] || ZONE_STYLE['-1']).color;
+      opacity = zone === 0 ? 0.35 : zone === -1 ? 0.25 : 0.85;
+    }
+
+    const anomTxt = anom == null ? 'n/d' : (anom >= 0 ? '+' : '') + anom.toFixed(2);
+    const belowTxt = fracBelow == null ? 'n/d' : Math.round(fracBelow * 100) + '%';
+    const popup = `<div class="zones-popup">
+        <div>Adesso: <b>${ndvi == null ? 'coperto' : 'NDVI ' + ndvi.toFixed(2)}</b></div>
+        <div>Scarto medio dal campo: <b>${anomTxt}</b></div>
+        <div>Sotto la media nel <b>${belowTxt}</b> delle ${nObs} immagini</div>
+        <div style="margin-top:4px;color:#6b6457">${(ZONE_STYLE[zone] || ZONE_STYLE['-1']).label}</div>
+      </div>`;
+
+    L.rectangle(bounds, {
+      renderer, stroke: false, fillColor: fill, fillOpacity: opacity,
+    }).bindPopup(popup).addTo(zonesLayer);
+  });
+
+  // Legenda e didascalia
+  if (zonesView === 'adesso') {
+    const grad = NDVI_STOPS.map(s => `rgb(${s[1].join(',')})`).join(',');
+    legendEl.innerHTML = `<span>Meno verde <i class="zl-gradient" style="background:linear-gradient(90deg,${grad})"></i> Più verde</span>`;
+    captionEl.textContent = `Ultima immagine pulita: ${formatDateIT(data.latest.date)} · media campo NDVI ${data.latest.field_mean != null ? data.latest.field_mean.toFixed(2) : "n/d"}`;
+  } else {
+    legendEl.innerHTML = [1, 0, 2].map(k =>
+      `<span><i style="background:${ZONE_STYLE[k].color}"></i>${ZONE_STYLE[k].label}</span>`).join('');
+    captionEl.textContent = `${data.window.n_images} immagini pulite · ${formatDateIT(data.window.start)} → ${formatDateIT(data.window.end)} · solo aprile-ottobre`;
+  }
+
+  // Sintesi
+  const sm = data.summary || {};
+  summaryEl.textContent = sm.text || '—';
+  summaryCard.classList.toggle('has-low', !!(sm.low && sm.low.pct >= 8));
+  document.getElementById('zones-footer').textContent =
+    `SENTINEL-2 · ${data.summary.n_pixels} PIXEL DA ${data.pixel_size_m} M · AGGIORNATO ${formatDateIT(data.generated_at || data.latest.date).toUpperCase()}`;
 }
 
 function goDettaglio() {
