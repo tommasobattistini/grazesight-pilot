@@ -1206,6 +1206,35 @@ body::before {
 .history-add-button:active { transform: scale(0.985); }
 .history-add-button::before { content: '+'; font-size: 20px; font-weight: 400; }
 
+.detected-section { margin-bottom: 22px; }
+.detected-title {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-soft); margin: 0 0 6px;
+}
+.detected-sub { font-size: 12px; line-height: 1.5; color: var(--ink-faint); margin-bottom: 12px; }
+.detected-empty {
+  font-size: 13px; line-height: 1.5; color: var(--ink-soft); background: var(--bg-tint);
+  border-radius: 12px; padding: 14px 16px;
+}
+.detected-event {
+  background: var(--card); border: 1px dashed var(--line-strong); border-radius: 14px;
+  padding: 12px 14px; margin-bottom: 10px;
+}
+.detected-event.ok { border-style: solid; border-color: var(--moss-lt); }
+.detected-event.no { opacity: 0.55; }
+.detected-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.detected-label { font-weight: 600; font-size: 14px; color: var(--ink); }
+.detected-year { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); }
+.detected-text { font-size: 13px; line-height: 1.5; color: var(--ink-mid); margin: 4px 0 8px; }
+.detected-conf { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+.detected-actions { display: flex; gap: 8px; margin-top: 8px; }
+.detected-btn {
+  flex: 1; padding: 8px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--bg-tint); font-family: var(--font-sans); font-size: 12px; font-weight: 600;
+  color: var(--ink-mid); cursor: pointer;
+}
+.detected-btn.sel-ok { background: var(--moss); border-color: var(--moss); color: #faf6e8; }
+.detected-btn.sel-no { background: var(--clay-pale); border-color: var(--clay); color: var(--clay-dk); }
 .history-list {
   position: relative;
 }
@@ -1775,6 +1804,12 @@ body::before {
     </div>
 
     <div class="perche-page fade-in">
+      <div class="detected-section">
+        <div class="detected-title">🛰 Rilevato dal satellite</div>
+        <div class="detected-sub" id="detected-sub">Eventi riconosciuti automaticamente dalle immagini Sentinel-2. Conferma o smentisci: ogni risposta rende il sistema più preciso.</div>
+        <div id="detected-list"><div class="detected-empty">Caricamento…</div></div>
+      </div>
+      <div class="detected-title" style="margin-top:6px">📋 Registrato da te</div>
       <button class="history-add-button" onclick="openEventModal()">Aggiungi azione</button>
       <div class="history-list" id="history-list">
         <!-- popolato da JS -->
@@ -3640,6 +3675,7 @@ function goPerche() {
 function goStorico() {
   if (!currentFieldId) return;
   renderStoricoPage(currentFieldId);
+  renderDetectedEvents(currentFieldId);
   showPage('page-storico');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 }
@@ -4183,6 +4219,90 @@ function renderStoricoPage(fieldId) {
   }).join('');
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   EVENTI RILEVATI DAL SATELLITE (idea 18)
+   Dati: pascoli-data/events/events_<campo>.json (scripts/detect_events.py)
+   Le conferme/smentite dell'allevatore restano sul telefono e finiscono
+   nell'export CSV: sono la verità a terra per migliorare il rilevamento.
+   ═══════════════════════════════════════════════════════════════ */
+const DETECT_FEEDBACK_KEY = 'pascoli_detect_feedback_v1';
+const detectedCache = {};
+
+function loadDetectFeedback() {
+  try { return JSON.parse(localStorage.getItem(DETECT_FEEDBACK_KEY) || '{}'); } catch (e) { return {}; }
+}
+const DETECT_FEEDBACK = loadDetectFeedback();
+function saveDetectFeedback() {
+  try { localStorage.setItem(DETECT_FEEDBACK_KEY, JSON.stringify(DETECT_FEEDBACK)); } catch (e) {}
+}
+const detectKey = ev => `${ev.field_id}|${ev.type}|${ev.date_to}`;
+
+async function loadDetectedEvents(fieldId) {
+  if (detectedCache[fieldId] !== undefined) return detectedCache[fieldId];
+  try {
+    const res = await fetch(`${REPO_RAW}/events/events_${fieldId}.json`, { cache: 'no-cache' });
+    detectedCache[fieldId] = res.ok ? await res.json() : null;
+  } catch (e) { detectedCache[fieldId] = null; }
+  return detectedCache[fieldId];
+}
+
+const DETECT_META = {
+  grazing:     { icon: '🐄', label: 'Animali al pascolo' },
+  cut:         { icon: '✂',  label: 'Sfalcio o lavorazione' },
+  abrupt_drop: { icon: '⚡', label: 'Calo improvviso' },
+};
+
+async function renderDetectedEvents(fieldId) {
+  const box = document.getElementById('detected-list');
+  box.innerHTML = '<div class="detected-empty">Caricamento…</div>';
+  const data = await loadDetectedEvents(fieldId);
+  if (fieldId !== currentFieldId) return;
+
+  if (!data) {
+    box.innerHTML = '<div class="detected-empty">Il rilevamento automatico per questo pascolo non è ancora disponibile.</div>';
+    return;
+  }
+  const minYear = CURRENT_YEAR - 1;
+  const evs = (data.events || [])
+    .filter(e => Number(e.date_to.slice(0, 4)) >= minYear)
+    .sort((a, b) => b.date_to.localeCompare(a.date_to));
+
+  const note = data.can_detect_grazing
+    ? 'Il satellite vede gli animali solo con un carico significativo (indicativamente oltre 4-5 capi per ettaro).'
+    : 'Su questo campo rileviamo solo sfalci e lavorazioni, non la presenza di animali.';
+
+  if (!evs.length) {
+    box.innerHTML = `<div class="detected-empty">Nessun evento rilevato da ${minYear} a oggi. ${note}</div>`;
+    return;
+  }
+
+  box.innerHTML = evs.map(e => {
+    const m = DETECT_META[e.type] || DETECT_META.abrupt_drop;
+    const k = detectKey(e);
+    const fb = DETECT_FEEDBACK[k];
+    return `
+      <div class="detected-event ${fb || ''}">
+        <div class="detected-head">
+          <span class="detected-label">${m.icon} ${m.label}</span>
+          <span class="detected-year">${e.date_to.slice(0, 4)}</span>
+        </div>
+        <div class="detected-text">${escapeHTML(e.text || '')}</div>
+        <div class="detected-conf">Affidabilità ${escapeHTML(e.confidence || 'media')}</div>
+        <div class="detected-actions">
+          <button class="detected-btn ${fb === 'ok' ? 'sel-ok' : ''}" onclick="setDetectFeedback('${k}','ok')">✓ È giusto</button>
+          <button class="detected-btn ${fb === 'no' ? 'sel-no' : ''}" onclick="setDetectFeedback('${k}','no')">✗ Non è vero</button>
+        </div>
+      </div>`;
+  }).join('') + `<div class="detected-sub" style="margin-top:4px">${note}</div>`;
+}
+
+function setDetectFeedback(key, value) {
+  if (DETECT_FEEDBACK[key] === value) delete DETECT_FEEDBACK[key];   // secondo tocco = annulla
+  else DETECT_FEEDBACK[key] = value;
+  saveDetectFeedback();
+  if (currentFieldId) renderDetectedEvents(currentFieldId);
+}
+
 // Esporta lo storico di TUTTI i pascoli in CSV (salvato solo sul telefono, localStorage)
 async function exportAllEvents() {
   const msg = document.getElementById('history-export-msg');
@@ -4193,6 +4313,12 @@ async function exportAllEvents() {
       .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
       .forEach(e => rows.push([fid, e.date, e.type, (EVENT_META[e.type] || EVENT_META.note).label,
                                e.detail, e.auto ? 'si' : 'no', e.createdAt]));
+  });
+  Object.keys(DETECT_FEEDBACK).sort().forEach(k => {
+    const [fid, type, dateTo] = k.split('|');
+    rows.push([fid, dateTo, 'satellite_' + type,
+               DETECT_FEEDBACK[k] === 'ok' ? 'Rilevato dal satellite: confermato' : 'Rilevato dal satellite: smentito',
+               '', 'no', '']);
   });
   if (rows.length === 1) { msg.textContent = 'Nessuna azione registrata su questo telefono.'; return; }
 
