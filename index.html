@@ -2463,7 +2463,8 @@ function getRecentMeteo(fieldId, days = 7) {
   const lastDate = new Date(lastDateStr);
   const cutoff = new Date(lastDate.getTime() - days * 24 * 60 * 60 * 1000)
     .toISOString().slice(0, 10);
-  const recent = data.filter(r => r.date >= cutoff && r.date <= lastDateStr);
+  // Le righe meteo sono settimane (data = primo giorno): ">" evita di contare due settimane
+  const recent = data.filter(r => r.date > cutoff && r.date <= lastDateStr);
   if (recent.length === 0) return { rain: null, temp: null, lastDate: lastDateStr };
   const rain = recent.reduce((s, r) => s + (r.rain_mm || 0), 0);
   const temp = recent.reduce((s, r) => s + (r.temp_c || 0), 0) / recent.length;
