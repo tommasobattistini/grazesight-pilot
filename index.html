@@ -711,6 +711,170 @@ body::before {
 .chart-canvas-wrap { position: relative; height: 180px; }
 
 /* ACTIONS */
+/* MEMORIA (la tua stagione) */
+.mem-wrap { padding: 24px 0 30px; }
+.mem-top { padding: 0 22px 20px; }
+.mem-chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10px;
+  letter-spacing: .08em; text-transform: uppercase; border-radius: 99px; padding: 5px 10px; margin-bottom: 10px;
+  color: var(--amber-dk); background: var(--amber-pale); }
+.mem-chip.closed { color: var(--moss-dk); background: var(--moss-pale); }
+.mem-chip i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.mem-title { font-family: var(--font-serif); font-size: 32px; line-height: 1.05; color: var(--ink); }
+.mem-title em { color: var(--moss); }
+.mem-dates { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); letter-spacing: .04em; margin-top: 6px; text-transform: uppercase; }
+.mem-prog { height: 6px; background: rgba(74,110,42,.12); border-radius: 9px; margin-top: 12px; overflow: hidden; }
+.mem-prog b { display: block; height: 100%; background: linear-gradient(90deg, var(--moss-lt), var(--moss)); border-radius: 9px; }
+.mem-sec { margin: 0 22px 26px; }
+.mem-n { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); letter-spacing: .08em; }
+.mem-h { font-family: var(--font-mono); font-weight: 500; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin: 2px 0 4px; }
+.mem-q { font-family: var(--font-serif); font-size: 20px; line-height: 1.25; margin-bottom: 12px; color: var(--ink); }
+.mem-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; position: relative; }
+.mem-card.ex::after { content: 'ESEMPIO'; position: absolute; top: 12px; right: 12px; font-family: var(--font-mono); font-size: 9px;
+  letter-spacing: .1em; color: var(--amber); background: var(--amber-pale); border-radius: 5px; padding: 2px 6px; }
+.mem-big { font-family: var(--font-serif); font-size: 54px; line-height: 1; color: var(--moss); }
+.mem-big small { font-family: var(--font-sans); font-size: 16px; color: var(--ink-soft); }
+.mem-bigsub { font-size: 13.5px; color: var(--ink-mid); margin: 6px 0 14px; line-height: 1.45; }
+.mem-bigsub b { color: var(--ink); }
+.mem-bales { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 6px; }
+.mem-bale { width: 14px; height: 14px; border-radius: 50%; display: inline-block;
+  background: radial-gradient(circle, #e9cf86 0 25%, #d9b45f 26% 45%, #c79a43 46% 100%); box-shadow: inset 0 0 0 1px rgba(120,80,20,.25); }
+.mem-bales-l { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); }
+.mem-split { display: flex; gap: 8px; margin-top: 14px; }
+.mem-split div { flex: 1; background: var(--bg-tint); border-radius: 12px; padding: 10px; }
+.mem-split b { display: block; font-family: var(--font-serif); font-size: 22px; font-weight: 400; color: var(--ink); }
+.mem-split span { font-size: 11px; color: var(--ink-soft); line-height: 1.3; display: block; margin-top: 2px; }
+.mem-foot { font-size: 11px; color: var(--ink-faint); line-height: 1.45; margin-top: 12px; }
+.mem-foot a { color: var(--moss); }
+.mem-yrow { display: grid; grid-template-columns: 40px 1fr 56px; align-items: center; gap: 10px; margin-bottom: 9px; }
+.mem-yrow span { font-family: var(--font-mono); font-size: 11px; color: var(--ink-soft); }
+.mem-yrow em { font-style: normal; font-family: var(--font-mono); font-size: 12px; text-align: right; color: var(--ink-soft); }
+.mem-ybar { height: 22px; background: var(--bg-tint); border-radius: 7px; overflow: hidden; }
+.mem-ybar b { display: block; height: 100%; background: var(--line-strong); border-radius: 7px; }
+.mem-yrow.cur .mem-ybar b { background: var(--moss); }
+.mem-yrow.cur span, .mem-yrow.cur em { color: var(--ink); font-weight: 600; }
+.mem-verdict { background: var(--clay-pale); color: var(--clay-dk); border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.45; margin-top: 10px; }
+.mem-verdict.ok { background: var(--moss-pale); color: var(--moss-dk); }
+.mem-urow { display: grid; grid-template-columns: 84px 1fr; gap: 10px; align-items: center; margin-bottom: 12px; }
+.mem-urow .nm { font-weight: 600; font-size: 13px; color: var(--ink); line-height: 1.2; }
+.mem-urow .nm small { display: block; font-family: var(--font-mono); font-size: 10px; font-weight: 400; color: var(--ink-faint); }
+.mem-ubar { position: relative; height: 26px; background: var(--bg-tint); border-radius: 8px; }
+.mem-ubar b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 8px; }
+.mem-ubar i { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-style: normal; font-family: var(--font-mono); font-size: 11px; color: var(--ink); white-space: nowrap; }
+.mem-grad { height: 6px; border-radius: 4px; background: linear-gradient(90deg, #c9d8b3, #6b9544, #d9a74a, #a83920); margin: 4px 0 0 94px; }
+.mem-scale { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 9px; color: var(--ink-faint); margin: 2px 0 0 94px; }
+.mem-rowlab { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); letter-spacing: .06em; text-transform: uppercase; margin: 4px 0 6px; }
+.mem-rowlab + .mem-months { margin-bottom: 12px; }
+.mem-months { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+.mem-mo { background: var(--bg-tint); border-radius: 12px; padding: 10px 1px; }
+.mem-mo .m { font-family: var(--font-mono); font-size: 10px; color: var(--ink-soft); text-transform: uppercase; }
+.mem-mo .t { font-size: 17px; font-weight: 700; margin: 6px 0 2px; color: var(--ink); }
+.mem-mo .d { font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-soft); }
+.mem-mo.hot, .mem-mo.wet { background: var(--clay-pale); } .mem-mo.hot .t, .mem-mo.hot .d { color: var(--clay); }
+.mem-mo.cold { background: var(--azure-pale); } .mem-mo.cold .t, .mem-mo.cold .d { color: var(--azure); }
+.mem-mo.wet { background: var(--azure-pale); } .mem-mo.wet .t, .mem-mo.wet .d { color: var(--azure); }
+.mem-mo.dry { background: var(--amber-pale); } .mem-mo.dry .t, .mem-mo.dry .d { color: var(--amber-dk); }
+.mem-mo.na { background: repeating-linear-gradient(135deg, var(--bg-tint) 0 6px, #ece7d9 6px 12px); }
+.mem-mo.na .t { color: var(--ink-faint); font-size: 13px; }
+.mem-fb { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; align-items: end; height: 150px; }
+.mem-fb .c { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; position: relative; }
+.mem-fb .av { width: 70%; background: #a8c37f; border-radius: 6px 6px 2px 2px; }
+.mem-fb .need { position: absolute; left: 4%; right: 4%; height: 0; border-top: 2.5px solid var(--ink); }
+.mem-fb .short { position: absolute; left: 15%; right: 15%; background: repeating-linear-gradient(45deg, var(--clay-pale) 0 4px, #efc2b0 4px 8px); }
+.mem-fb span { font-family: var(--font-mono); font-size: 10px; color: var(--ink-soft); margin-top: 4px; }
+.mem-lg { display: flex; gap: 14px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 10px; color: var(--ink-soft); margin-top: 10px; }
+.mem-lg i { display: inline-block; width: 14px; height: 8px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+.mem-empty { font-size: 13px; line-height: 1.5; color: var(--ink-soft); background: var(--bg-tint); border-radius: 12px; padding: 14px 16px; }
+
+.mem-story { margin: 0 22px 6px; font-family: var(--font-serif); font-size: 21px; line-height: 1.35; color: var(--ink-mid); }
+.mem-story em { color: var(--moss); font-style: italic; } .mem-story .bad { color: var(--clay); font-style: italic; }
+.mem-by { margin: 0 22px 22px; font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); letter-spacing: .05em; text-transform: uppercase; }
+.mem-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 22px 26px; }
+.mem-tile { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; }
+.mem-tile .n { font-family: var(--font-serif); font-size: 30px; line-height: 1; color: var(--ink); }
+.mem-tile .n small { font-family: var(--font-sans); font-size: 13px; color: var(--ink-soft); margin-left: 3px; }
+.mem-tile .l { font-size: 12px; color: var(--ink-soft); margin-top: 6px; line-height: 1.35; }
+.mem-tile .c { font-family: var(--font-mono); font-size: 10px; margin-top: 6px; color: var(--ink-faint); }
+.mem-tile .c.down { color: var(--clay); } .mem-tile .c.up { color: var(--moss); }
+.mem-h2 { font-family: var(--font-mono); font-weight: 500; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 4px; }
+.mem-sub { font-size: 13px; color: var(--ink-soft); line-height: 1.45; margin-bottom: 12px; }
+.mem-svg text { font-family: var(--font-mono); font-size: 9px; fill: var(--ink-faint); }
+.mem-svg text.gname { font-family: var(--font-sans); font-size: 11px; fill: var(--ink-mid); font-weight: 600; }
+.mem-legend { display: flex; gap: 14px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 10px; color: var(--ink-soft); margin-top: 8px; }
+.mem-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.mem-legend i { display: inline-block; width: 14px; height: 8px; border-radius: 2px; }
+.mem-mom { position: relative; padding-left: 18px; }
+.mem-mom::before { content: ''; position: absolute; left: 5px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
+.mem-mom .mm { position: relative; padding: 0 0 14px; }
+.mem-mom .mm::before { content: ''; position: absolute; left: -17px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--card); border: 2px solid var(--moss); }
+.mem-mom .mm.bad::before { border-color: var(--clay); } .mem-mom .mm.sat::before { border-color: var(--amber); }
+.mem-mom .dt { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); letter-spacing: .05em; text-transform: uppercase; }
+.mem-mom .tx { font-size: 13.5px; line-height: 1.45; color: var(--ink-mid); margin-top: 2px; }
+.mem-mom .tx b { color: var(--ink); }
+.mem-mom .src { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: .05em; text-transform: uppercase; border-radius: 5px; padding: 1px 5px; margin-left: 6px; vertical-align: 1px; }
+.mem-mom .src.s { background: var(--amber-pale); color: var(--amber-dk); } .mem-mom .src.a { background: var(--moss-pale); color: var(--moss-dk); }
+.mem-rank { display: flex; flex-direction: column; gap: 10px; }
+.mem-rank .rrow { display: grid; grid-template-columns: 90px 1fr 70px; align-items: center; gap: 10px; font-size: 13px; }
+.mem-rank .nm { font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mem-rank .bar { height: 10px; background: var(--bg-tint); border-radius: 9px; position: relative; }
+.mem-rank .bar b { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 9px; background: var(--moss-lt); }
+.mem-rank .bar i { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); }
+.mem-rank .dl { font-family: var(--font-mono); font-size: 11px; text-align: right; }
+.mem-rank .dl.down { color: var(--clay); } .mem-rank .dl.up { color: var(--moss); }
+.mem-note { font-size: 11px; color: var(--ink-faint); margin-top: 12px; line-height: 1.45; }
+.mem-years { display: grid; gap: 8px; align-items: end; height: 130px; margin-top: 6px; }
+.mem-years .yr { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; }
+.mem-years .yr b { width: 100%; border-radius: 8px 8px 3px 3px; background: var(--line-strong); min-height: 4px; }
+.mem-years .yr.cur b { background: var(--moss); }
+.mem-years .yr span { font-family: var(--font-mono); font-size: 10px; color: var(--ink-soft); }
+.mem-years .yr em { font-family: var(--font-mono); font-size: 10px; font-style: normal; color: var(--ink); }
+.mem-tip { display: flex; gap: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 10px; }
+.mem-tip .ic { flex: 0 0 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 17px; background: var(--moss-pale); }
+.mem-tip p { font-size: 13.5px; line-height: 1.5; color: var(--ink-mid); }
+.mem-tip p b { color: var(--ink); }
+.mem-ai { font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); letter-spacing: .04em; margin-top: 2px; text-transform: uppercase; }
+
+/* IMPOSTAZIONI */
+.set-wrap { padding: 18px 0 30px; }
+.set-sec { margin: 0 22px 22px; }
+.set-h { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px; }
+.set-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+.set-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line-soft); }
+.set-row:last-child { border-bottom: 0; }
+.set-row.col { flex-direction: column; align-items: stretch; }
+.set-l { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+.set-l small { display: block; font-weight: 400; font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+.set-sub { font-size: 12px; color: var(--ink-faint); line-height: 1.45; margin-bottom: 10px; }
+.set-input { font-family: var(--font-sans); font-size: 15px; color: var(--ink); background: var(--bg-tint); border: 1px solid var(--line);
+  border-radius: 10px; padding: 10px 12px; width: 100%; }
+.set-input.narrow { width: 92px; text-align: right; }
+select.set-input.narrow { width: 120px; text-align: left; }
+.set-num { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-soft); white-space: nowrap; }
+.set-range { width: 100%; accent-color: var(--moss); margin-top: 10px; }
+.set-switch { width: 46px; height: 26px; appearance: none; -webkit-appearance: none; background: var(--line-strong); border-radius: 99px;
+  position: relative; cursor: pointer; flex-shrink: 0; transition: background .2s; }
+.set-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .2s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.set-switch:checked { background: var(--moss); }
+.set-switch:checked::after { left: 23px; }
+.set-field { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line-soft); }
+.set-field small { display: block; font-family: var(--font-mono); font-size: 10px; color: var(--ink-faint); margin-top: 4px; }
+.set-field.off .set-input { opacity: .45; }
+.set-reload { display: none; margin-top: 10px; background: var(--amber-pale); color: var(--amber-dk); border-radius: 12px; padding: 10px 12px;
+  font-size: 12.5px; line-height: 1.4; gap: 10px; align-items: center; justify-content: space-between; }
+.set-reload.show { display: flex; }
+.set-btn { display: block; width: 100%; margin: 8px 0 0; padding: 12px; background: var(--bg-tint); border: 1px solid var(--line);
+  border-radius: 12px; font-family: var(--font-sans); font-size: 14px; font-weight: 600; color: var(--ink-mid); cursor: pointer; text-align: left; }
+.set-btn.small { width: auto; margin: 0; padding: 7px 10px; font-size: 12px; background: #fff; white-space: nowrap; }
+.set-btn.danger { color: var(--clay); background: transparent; border-style: dashed; margin-top: 18px; }
+.set-info { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13px; color: var(--ink-mid); margin-bottom: 12px; }
+.set-info b { font-family: var(--font-mono); font-weight: 500; font-size: 11px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .05em; padding-top: 2px; }
+.set-guide { border-top: 1px solid var(--line-soft); padding-top: 10px; }
+.set-guide summary { font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; padding: 4px 0; }
+.set-guide p { font-size: 13px; line-height: 1.55; color: var(--ink-mid); margin-top: 8px; }
+.set-sources { font-size: 11px; color: var(--ink-faint); line-height: 1.45; margin-top: 12px; }
+.set-toast { position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%); background: var(--ink); color: #faf6e8; font-size: 13px;
+  padding: 8px 14px; border-radius: 99px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 3000; }
+.set-toast.show { opacity: 1; }
+
 /* ZONE PAGE (mappa dentro il pascolo) */
 .zones-toggle {
   display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
@@ -1763,7 +1927,7 @@ body::before {
     <button class="nav-item" onclick="goMemoria()">
       <span class="nav-icon">✦</span><span class="nav-label">Memoria</span>
     </button>
-    <button class="nav-item" onclick="alert('Impostazioni (Consegna 4)')">
+    <button class="nav-item" onclick="goImpostazioni()">
       <span class="nav-icon">⚙</span><span class="nav-label">Impostazioni</span>
     </button>
   </nav>
@@ -1927,18 +2091,92 @@ body::before {
        PAGE MEMORIA STAGIONALE — placeholder
        ═══════════════════════════════════════════════════════════ -->
   <div class="page" id="page-memoria">
+    <div class="mem-wrap fade-in" id="memoria-content">
+      <div class="mem-empty">Caricamento…</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PAGE IMPOSTAZIONI
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="page" id="page-impostazioni">
     <div class="page-header">
-      <h2 class="page-title">La tua <em>stagione</em></h2>
-      <div class="greet-time" id="memoria-year">2026</div>
+      <h2 class="page-title"><em>Impostazioni</em></h2>
+      <div class="greet-time" id="set-saved">SALVATE SUL TELEFONO</div>
     </div>
 
-    <div class="memory-locked fade-in" id="memoria-content">
-      <!-- popolato da JS -->
-    </div>
+    <div class="set-wrap">
+      <!-- Azienda e pascoli -->
+      <div class="set-sec">
+        <div class="set-h">Azienda e pascoli</div>
+        <div class="set-card">
+          <label class="set-row col">
+            <span class="set-l">Nome dell'azienda</span>
+            <input class="set-input" id="set-farm" type="text" maxlength="40" placeholder="Azienda Ferrini">
+          </label>
+          <div class="set-l" style="margin:14px 0 8px">I tuoi pascoli</div>
+          <div class="set-sub">Dai ai pascoli i nomi che usi tu. Spegni quelli che non usi: spariscono da mappa, home e Memoria.</div>
+          <div id="set-fields"></div>
+          <div class="set-reload" id="set-reload">
+            <span>Riapri l'app per applicare le modifiche ai pascoli nascosti.</span>
+            <button class="set-btn small" onclick="location.reload()">Applica ora</button>
+          </div>
+        </div>
+      </div>
 
-    <div class="footer-mini">
-      LA TUA STAGIONE COMPLETA SARÀ DISPONIBILE A NOVEMBRE
+      <!-- Mandria -->
+      <div class="set-sec">
+        <div class="set-h">Mandria</div>
+        <div class="set-card">
+          <label class="set-row">
+            <span class="set-l">Specie predefinita</span>
+            <select class="set-input narrow" id="set-animal">
+              <option value="bovino">Bovini</option><option value="ovino">Ovini</option>
+              <option value="caprino">Caprini</option><option value="equino">Equini</option>
+            </select>
+          </label>
+          <label class="set-row">
+            <span class="set-l">Fieno al pascolo, di base<small>Per i pascoli nuovi: ballone di fieno presente o no</small></span>
+            <input type="checkbox" class="set-switch" id="set-fieno">
+          </label>
+        </div>
+      </div>
+
+      <!-- Dati e backup -->
+      <div class="set-sec">
+        <div class="set-h">Dati e backup</div>
+        <div class="set-card">
+          <div class="set-sub">Storico azioni, stato dei pascoli e impostazioni sono salvati solo su questo telefono. Scarica un backup ogni tanto: se cambi telefono, lo ripristini in un tocco.</div>
+          <button class="set-btn" onclick="exportBackup()">⇩ Scarica backup completo</button>
+          <button class="set-btn" onclick="document.getElementById('set-import').click()">⇧ Ripristina da un backup</button>
+          <input type="file" id="set-import" accept=".json,application/json" style="display:none" onchange="importBackup(this)">
+          <button class="set-btn" onclick="document.getElementById('set-import-mov').click()">⇧ Importa movimenti da file (CSV)</button>
+          <input type="file" id="set-import-mov" accept=".csv,text/csv,text/plain" style="display:none" onchange="importMovements(this)">
+          <button class="set-btn" onclick="exportAllEvents('set-data-msg')">⇩ Esporta storico in CSV (per Excel)</button>
+          <div class="history-export-msg" id="set-data-msg"></div>
+          <button class="set-btn danger" onclick="clearLocalData()">Cancella i dati di questo telefono</button>
+        </div>
+      </div>
+
+      <!-- Informazioni -->
+      <div class="set-sec">
+        <div class="set-h">Informazioni</div>
+        <div class="set-card">
+          <div class="set-info" id="set-info"></div>
+          <details class="set-guide">
+            <summary>Come leggere vegetazione e verdetti</summary>
+            <p><b>Vegetazione (NDVI)</b> è un indice da 0 a 1 calcolato dal satellite Sentinel-2: più è alto, più l'erba è verde e fitta. Su un pascolo in salute in primavera sta tra 0,70 e 0,85; d'estate con la siccità può scendere sotto 0,40.</p>
+            <p><b>Ottima</b> sopra 0,70 · <b>Buona</b> 0,55-0,70 · <b>Da monitorare</b> 0,40-0,55 · <b>Critica</b> sotto 0,40. Lo stato del pascolo in home tiene conto anche di carico, riposo e meteo.</p>
+            <p><b>Quando arrivano i dati.</b> Il satellite passa ogni 2-5 giorni, ma con le nuvole non vede il suolo: un ultimo dato di 7-10 giorni fa è normale. Nei giorni coperti il sistema stima la vegetazione dal radar Sentinel-1.</p>
+            <p><b>Previsioni.</b> Fino a 14 giorni, con un intervallo che contiene il valore vero 9 volte su 10.</p>
+          </details>
+          <div class="set-sources">Fonti: Copernicus Sentinel-2 e Sentinel-1 (ESA), ERA5-Land (ECMWF), Open-Meteo, SRTM (NASA), OpenStreetMap, Esri.</div>
+        </div>
+      </div>
+
+      <div class="footer-mini">GRAZESIGHT · PILOTA · VERSIONE 2026.11</div>
     </div>
+  </div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════
@@ -2017,6 +2255,37 @@ const FIELDS = [
 ];
 
 /* ═══════════════════════════════════════════════════════════════
+   IMPOSTAZIONI — salvate sul telefono, applicate all'avvio
+   ═══════════════════════════════════════════════════════════════ */
+const SETTINGS_KEY = 'grazesight_settings_v1';
+const CLIENTE = 'ferrini';
+const SETTINGS_DEFAULT = {
+  farmName: 'Azienda Ferrini',
+  fieldNames: {},          // { pascolo_3: 'Prato della quercia' }
+  hiddenFields: [],        // [ 'pascolo_4' ]
+  defaultAnimal: 'bovino',
+  defaultFieno: true,
+};
+function loadSettings() {
+  try { return Object.assign({}, SETTINGS_DEFAULT, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); }
+  catch (e) { return Object.assign({}, SETTINGS_DEFAULT); }
+}
+const SETTINGS = loadSettings();
+function saveSettings() {
+  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(SETTINGS)); } catch (e) {}
+}
+
+// Tutti i pascoli (anche nascosti) per la pagina Impostazioni; FIELDS contiene solo quelli visibili
+const ALL_FIELDS = FIELDS.slice();
+ALL_FIELDS.forEach(f => {
+  f.defaultName = f.name;
+  if (SETTINGS.fieldNames[f.id]) f.name = SETTINGS.fieldNames[f.id];
+});
+for (let i = FIELDS.length - 1; i >= 0; i--) {
+  if (SETTINGS.hiddenFields.includes(FIELDS[i].id) && FIELDS.length > 1) FIELDS.splice(i, 1);
+}
+
+/* ═══════════════════════════════════════════════════════════════
    STATE
    ═══════════════════════════════════════════════════════════════ */
 
@@ -2045,7 +2314,7 @@ function getFieldState(id) {
     // hasFieno default true: la maggior parte degli allevatori Romagnola tiene
     // un ballone permanente nel pascolo. Può essere disabilitato per pascoli
     // difficili da raggiungere (ripe, dirupi, alpeggi remoti).
-    FIELD_STATE[id] = { status: 'libero', animal: 'bovino', capi: 0, hasFieno: true };
+    FIELD_STATE[id] = { status: 'libero', animal: SETTINGS.defaultAnimal, capi: 0, hasFieno: SETTINGS.defaultFieno };
   }
   // Migrazione difensiva: se lo state esiste già ma manca hasFieno (vecchio salvataggio)
   if (FIELD_STATE[id].hasFieno === undefined) {
@@ -4304,8 +4573,8 @@ function setDetectFeedback(key, value) {
 }
 
 // Esporta lo storico di TUTTI i pascoli in CSV (salvato solo sul telefono, localStorage)
-async function exportAllEvents() {
-  const msg = document.getElementById('history-export-msg');
+async function exportAllEvents(msgId) {
+  const msg = document.getElementById(msgId || 'history-export-msg');
   const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
   const rows = [['campo', 'data', 'tipo', 'azione', 'dettaglio', 'automatico', 'registrato_il']];
   Object.keys(FIELD_EVENTS).sort().forEach(fid => {
@@ -4431,77 +4700,446 @@ document.addEventListener('click', e => {
    MEMORIA STAGIONALE — placeholder fine stagione
    ═══════════════════════════════════════════════════════════════ */
 
-function renderMemoriaPage() {
-  document.getElementById('memoria-year').textContent = String(CURRENT_YEAR);
+/* ═══════════════════════════════════════════════════════════════
+   MEMORIA — la tua stagione
+   Dati satellite/meteo: pascoli-data/memoria/memoria_<cliente>.json
+   (scripts/build_memoria.py). Giornate-capo e fieno: dallo storico
+   registrato su questo telefono.
+   ═══════════════════════════════════════════════════════════════ */
+let memoriaCache;   // undefined = non caricato, null = non disponibile
+const MESI_BREVI = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+const fmtIT = (n, d = 0) => Number(n).toLocaleString('it-IT', { minimumFractionDigits: d, maximumFractionDigits: d });
 
-  const today = new Date();
-  const yearStart = new Date(CURRENT_YEAR, 0, 1);
-  const yearEnd = new Date(CURRENT_YEAR, 11, 31);
-  const totalDays = Math.floor((yearEnd - yearStart) / 86400000);
-  const elapsedDays = Math.floor((today - yearStart) / 86400000);
-  const progressPct = Math.min(100, Math.max(0, (elapsedDays / totalDays) * 100));
+async function loadMemoria() {
+  if (memoriaCache !== undefined) return memoriaCache;
+  try {
+    const r = await fetch(`${REPO_RAW}/memoria/memoria_${CLIENTE}.json`, { cache: 'no-cache' });
+    memoriaCache = r.ok ? await r.json() : null;
+  } catch (e) { memoriaCache = null; }
+  return memoriaCache;
+}
 
-  // Statistiche stagionali (live)
-  const totalFields = FIELDS.length;
-  let totalEvents = 0;
-  let totalCapi = 0;
-  let avgNdvi = 0;
-  let ndviCount = 0;
-
-  FIELDS.forEach(f => {
-    const events = getFieldEvents(f.id);
-    totalEvents += events.length;
-    const state = getFieldState(f.id);
-    if (state.status === 'occupato') totalCapi += state.capi || 0;
-    const data = dataCache.ndvi[f.id] || [];
-    data.forEach(r => {
-      if (r.mean_ndvi !== null && r.mean_ndvi !== undefined) {
-        avgNdvi += r.mean_ndvi;
-        ndviCount++;
-      }
-    });
+// Ricostruisce dai movimenti registrati quanti capi c'erano in ogni pascolo nel tempo.
+// Restituisce i periodi con animali: [{ t0, t1, capi, uba }]
+const ANIMAL_FROM_LABEL = { bovini: 'bovino', ovini: 'ovino', caprini: 'caprino', equini: 'equino' };
+function grazingSegments(fieldId, fromDate, toDate) {
+  const evs = [...getFieldEvents(fieldId)].map(e => ({
+    ...e, t: new Date(e.auto && e.createdAt ? e.createdAt : (e.date || '') + 'T12:00:00'),
+  })).filter(e => !isNaN(e.t)).sort((a, b) => a.t - b.t);
+  let capi = 0, animal = SETTINGS.defaultAnimal, last = null;
+  const segs = [];
+  const close = t1 => {
+    if (last === null || capi <= 0) return;
+    const a = Math.max(last, fromDate), b = Math.min(t1, toDate);
+    if (b > a) segs.push({ t0: new Date(a), t1: new Date(b), capi, uba: capi * (UBA_FACTOR[animal] || 1) });
+  };
+  for (const e of evs) {
+    close(e.t); last = e.t;
+    const det = e.detail || '';
+    const m = det.match(/Da\s+(\d+)\s+a\s+(\d+)\s+capi\s+(\w+)/i);
+    if (m) { capi = +m[2]; animal = ANIMAL_FROM_LABEL[m[3].toLowerCase()] || animal; }
+    if (['pause', 'vacate', 'rest', 'move'].includes(e.type)) capi = 0;
+    if (e.type === 'add') {
+      const n = det.match(/(\d+)/); if (n) capi = +n[1];
+      const sp = det.match(/\b(bovini|ovini|caprini|equini)\b/i); if (sp) animal = ANIMAL_FROM_LABEL[sp[1].toLowerCase()];
+    }
+  }
+  close(toDate);
+  // Unisce periodi contigui e scarta quelli sotto le 6 ore (prove, correzioni)
+  // Per ogni periodo, il numero di capi è quello rimasto più a lungo (ignora correzioni di pochi minuti)
+  const out = [];
+  for (const sg of segs) {
+    const p = out[out.length - 1], dur = sg.t1 - sg.t0;
+    if (p && sg.t0 - p.t1 < 3600e3) { p.t1 = sg.t1; p.dur[sg.capi] = (p.dur[sg.capi] || 0) + dur; p.ubaPer = sg.uba / sg.capi; }
+    else out.push({ ...sg, dur: { [sg.capi]: dur }, ubaPer: sg.uba / sg.capi });
+  }
+  return out.filter(sg => sg.t1 - sg.t0 >= 6 * 3600e3).map(sg => {
+    const capi = +Object.entries(sg.dur).sort((x, y) => y[1] - x[1])[0][0];
+    return { t0: sg.t0, t1: sg.t1, capi, uba: capi * sg.ubaPer };
   });
+}
 
-  if (ndviCount > 0) avgNdvi = avgNdvi / ndviCount;
+function seasonInfo(year) {
+  const s0 = new Date(year, 3, 1), s1 = new Date(year, 9, 31, 23, 59);
+  const now = new Date();
+  return { s0, s1, closed: now > s1, pct: Math.min(100, Math.max(0, (now - s0) / (s1 - s0) * 100)) };
+}
+const dayIT = d => { const x = new Date(d); return `${x.getDate()} ${['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'][x.getMonth()]}`; };
+const isoDay = d => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; };
+const listIT = a => a.length <= 1 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' e ' + a[a.length - 1];
 
-  const monthsLeft = Math.max(0, 11 - today.getMonth());
+async function renderMemoriaPage() {
+  const el = document.getElementById('memoria-content');
+  const y = CURRENT_YEAR, si = seasonInfo(y);
+  const head = `
+    <div class="mem-top">
+      <div class="mem-chip ${si.closed ? 'closed' : ''}"><i></i>${si.closed ? 'Stagione chiusa' : 'Anteprima · stagione in corso'}</div>
+      <div class="mem-title">La tua stagione <em>${y}</em></div>
+      <div class="mem-dates">1 aprile → 31 ottobre · ${escapeHTML(SETTINGS.farmName)} · ${FIELDS.length} pascoli</div>
+      <div class="mem-prog"><b style="width:${si.pct}%"></b></div>
+    </div>`;
+  el.innerHTML = head + '<div class="mem-sec"><div class="mem-empty">Caricamento…</div></div>';
+  const M = await loadMemoria();
+  const nameOf = fid => (ALL_FIELDS.find(f => f.id === fid) || {}).name || fid;
+  const visible = fid => FIELDS.some(f => f.id === fid);
 
-  const content = document.getElementById('memoria-content');
-  content.innerHTML = `
-    <div class="memory-icon">🌾</div>
-    <div class="memory-title">
-      La tua stagione <em>${CURRENT_YEAR}</em><br>
-      è in corso
-    </div>
-    <div class="memory-subtitle">
-      A novembre avrai il riepilogo completo del tuo anno:
-      crescita dei pascoli, eventi gestionali, confronti stagionali.
-    </div>
+  // ── Periodi al pascolo dallo storico ──
+  const from = new Date(y, 0, 1), to = new Date();
+  const segs = {};
+  FIELDS.forEach(f => { segs[f.id] = grazingSegments(f.id, from, to); });
+  const allSegs = Object.entries(segs).flatMap(([fid, l]) => l.map(s => ({ ...s, fid })));
+  let daysOut = 0, maxCapi = 0, firstDay = null, lastDay = null;
+  for (let d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+    const noon = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12);
+    const tot = allSegs.filter(s => s.t0 <= noon && s.t1 >= noon).reduce((a, s) => a + s.capi, 0);
+    if (tot > 0) { daysOut++; maxCapi = Math.max(maxCapi, tot); firstDay = firstDay || new Date(noon); lastDay = new Date(noon); }
+  }
+  const stillIn = allSegs.some(s => to - s.t1 < 3600e3);
 
-    <div class="memory-progress">
-      <div class="memory-progress-fill" style="width:${progressPct}%;"></div>
-    </div>
-    <div class="memory-progress-label">${Math.round(progressPct)}% DELL'ANNO COMPLETATO</div>
+  // ── Racconto ──
+  const story = M && M.story
+    ? `<p class="mem-story">${M.story.replace(/<b>/g, '<span class="bad">').replace(/<\/b>/g, '</span>')}</p><div class="mem-by">Racconto generato dai dati della stagione</div>` : '';
 
-    <div class="memory-stats">
-      <div class="memory-stat">
-        <div class="memory-stat-num">${totalFields}</div>
-        <div class="memory-stat-label">Pascoli</div>
-      </div>
-      <div class="memory-stat">
-        <div class="memory-stat-num">${totalEvents}</div>
-        <div class="memory-stat-label">Azioni</div>
-      </div>
-      <div class="memory-stat">
-        <div class="memory-stat-num">${avgNdvi > 0 ? avgNdvi.toFixed(2) : '—'}</div>
-        <div class="memory-stat-label">NDVI medio</div>
-      </div>
-    </div>
+  // ── Quattro numeri ──
+  const tiles = [];
+  tiles.push(daysOut
+    ? `<div class="mem-tile"><div class="n">${daysOut}<small>giorni</small></div><div class="l">con animali al pascolo, dal ${dayIT(firstDay)} ${stillIn ? 'a oggi' : 'al ' + dayIT(lastDay)}</div><div class="c">fino a ${maxCapi} capi insieme</div></div>`
+    : `<div class="mem-tile"><div class="n">—</div><div class="l">giorni al pascolo: registra carichi e spostamenti nello Storico azioni</div></div>`);
+  if (M && M.good_days && M.good_days[y] != null) {
+    const pc = v => Math.round(v / 214 * 100), prev = M.good_days[y - 1];
+    tiles.push(`<div class="mem-tile"><div class="n">${pc(M.good_days[y])}<small>%</small></div><div class="l">della stagione con erba buona (vegetazione ≥ ${fmtIT(M.good_threshold, 2)})</div>${prev != null ? `<div class="c ${pc(M.good_days[y]) < pc(prev) ? 'down' : 'up'}">${pc(M.good_days[y]) < pc(prev) ? '↓' : '↑'} nel ${y - 1} era il ${pc(prev)}%</div>` : ''}</div>`);
+  }
+  if (M && M.low) {
+    const d = new Date(M.low.date);
+    tiles.push(`<div class="mem-tile"><div class="n">${d.getDate()}<small>${MESI_BREVI[d.getMonth()]}</small></div><div class="l">il giorno più secco: vegetazione media ${fmtIT(M.low.value, 2)}</div><div class="c">nel ${M.low.hist_min_year} si era scesi a ${fmtIT(M.low.hist_min, 2)}</div></div>`);
+  }
+  const satN = M && M.sat_events ? M.sat_events.filter(e => visible(e.field_id)).length : 0;
+  if (satN) tiles.push(`<div class="mem-tile"><div class="n">${satN}</div><div class="l">sfalci o lavorazioni riconosciuti dal satellite, senza registrarli</div></div>`);
+  else if (M && M.recovery) tiles.push(`<div class="mem-tile"><div class="n">${new Date(M.recovery).getDate()}<small>${MESI_BREVI[new Date(M.recovery).getMonth()]}</small></div><div class="l">la ripresa: vegetazione di nuovo sopra ${fmtIT(M.good_threshold, 2)}</div></div>`);
+  const tilesHTML = `<div class="mem-tiles">${tiles.join('')}</div>`;
 
-    <div class="memory-cta">
-      ${monthsLeft === 0 ? 'PRONTA TRA POCO' : `MANCANO ~${monthsLeft} MESI`}
-    </div>
-  `;
+  // ── Curva ──
+  let curveHTML = '';
+  if (M && M.curve && M.curve.cur) {
+    const C = M.curve, W = 340, H = 190, L = 26, R = 6, T = 10, B = 24, n = C.med.length;
+    const x = i => L + i * (W - L - R) / (n - 1), yy = v => T + (1 - (v - 0.2) / 0.7) * (H - T - B);
+    let g = '';
+    [0.3, 0.5, 0.7, 0.9].forEach(v => { g += `<line x1="${L}" x2="${W - R}" y1="${yy(v)}" y2="${yy(v)}" stroke="#efeadc"/><text x="${L - 4}" y="${yy(v) + 3}" text-anchor="end">${fmtIT(v, 1)}</text>`; });
+    const up = C.max.map((v, i) => `${x(i)},${yy(v)}`), lo = C.min.map((v, i) => `${x(i)},${yy(v)}`).reverse();
+    g += `<polygon points="${up.concat(lo).join(' ')}" fill="#e9e4d4"/>`;
+    g += `<polyline points="${C.med.map((v, i) => `${x(i)},${yy(v)}`).join(' ')}" fill="none" stroke="#948a78" stroke-width="1.4" stroke-dasharray="3 3"/>`;
+    const pts = C.cur.map((v, i) => v == null ? null : `${x(i)},${yy(v)}`).filter(Boolean);
+    g += `<polyline points="${pts.join(' ')}" fill="none" stroke="#4a6e2a" stroke-width="2.6" stroke-linejoin="round"/>`;
+    if (M.low) {
+      const wi = Math.min(n - 1, Math.floor((new Date(M.low.date) - new Date(y, 3, 1)) / (7 * 86400e3)));
+      const v = C.cur[wi] != null ? C.cur[wi] : M.low.value, d = new Date(M.low.date);
+      g += `<circle cx="${x(wi)}" cy="${yy(v)}" r="4" fill="#a83920"/><text x="${x(wi)}" y="${yy(v) + 14}" text-anchor="middle" style="fill:#a83920">${d.getDate()} ${MESI_BREVI[d.getMonth()]}</text>`;
+    }
+    ['apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott'].forEach((m, k) => { g += `<text x="${x(k * 30 / 7)}" y="${H - 6}" text-anchor="${k ? 'middle' : 'start'}">${m}</text>`; });
+    curveHTML = `<div class="mem-sec"><div class="mem-h2">Com'è andata l'erba</div><div class="mem-sub">Vegetazione media dei pascoli, settimana per settimana, confrontata con gli anni ${C.years[0]}-${C.years[1]}.</div>
+      <div class="mem-card"><svg class="mem-svg" viewBox="0 0 ${W} ${H}" width="100%">${g}</svg>
+      <div class="mem-legend"><span><i style="background:var(--moss);height:3px"></i>${y}</span><span><i style="background:#e9e4d4"></i>${C.years[0]}-${C.years[1]}, min-max</span><span><i style="background:#948a78;height:2px"></i>mediana</span></div></div></div>`;
+  }
+
+  // ── Calendario della mandria ──
+  const s0 = new Date(y, 3, 1), s1 = new Date(y, 10, 1);
+  const GL = 66, GR = 6, GT = 6, rowH = 32, GW = 340, xg = d => GL + (Math.min(Math.max(new Date(d), s0), s1) - s0) / (s1 - s0) * (GW - GL - GR);
+  let gg = '';
+  ['apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott'].forEach((m, k) => { const xx = xg(new Date(y, 3 + k, 1)); gg += `<line x1="${xx}" x2="${xx}" y1="${GT}" y2="${GT + FIELDS.length * rowH}" stroke="#f0ece0"/><text x="${xx + 2}" y="${GT + FIELDS.length * rowH + 12}">${m}</text>`; });
+  FIELDS.forEach((f, r) => {
+    const yy = GT + r * rowH, crop = M && M.fields && M.fields[f.id] && M.fields[f.id].crop;
+    const nm = f.name.length > 11 ? f.name.slice(0, 10) + '…' : f.name;
+    gg += `<text x="0" y="${yy + 19}" class="gname">${escapeHTML(nm)}</text><rect x="${GL}" y="${yy + 7}" width="${GW - GL - GR}" height="18" rx="5" fill="#f7f4ec"/>`;
+    segs[f.id].forEach(sg => {
+      if (sg.t1 < s0) return;
+      const x0 = xg(sg.t0), x1 = xg(sg.t1), light = sg.uba / (f.area || 1) < 2, open = to - sg.t1 < 3600e3;
+      gg += `<rect x="${x0}" y="${yy + 7}" width="${Math.max(3, x1 - x0)}" height="18" rx="5" fill="${light ? '#c9d8b3' : '#6b9544'}" ${open ? 'stroke="#6b9544" stroke-dasharray="3 2"' : ''}/>`;
+      if (x1 - x0 > 34) gg += `<text x="${x0 + 5}" y="${yy + 19}" style="fill:${light ? '#36531b' : '#fff'}">${sg.capi} capi</text>`;
+    });
+    (M && M.sat_events || []).filter(e => e.field_id === f.id).forEach(e => {
+      gg += `<text x="${xg(e.date_to) - 5}" y="${yy + 20}" style="font-size:12px;fill:#b87520">✂</text>`;
+    });
+    if (!segs[f.id].length && !crop && !(M && M.sat_events || []).some(e => e.field_id === f.id))
+      gg += `<text x="${GL + 6}" y="${yy + 19}" style="fill:#b5ad9a">mai usato quest'anno</text>`;
+  });
+  const ganttHTML = `<div class="mem-sec"><div class="mem-h2">Il calendario della mandria</div><div class="mem-sub">Chi è stato dove, da aprile a ottobre. Le barre vengono dal tuo storico, le forbici dal satellite.</div>
+    <div class="mem-card"><svg class="mem-svg" viewBox="0 0 ${GW} ${GT + FIELDS.length * rowH + 18}" width="100%">${gg}</svg>
+    <div class="mem-legend"><span><i style="background:var(--moss-lt)"></i>animali</span><span><i style="background:#c9d8b3"></i>pochi capi</span><span>✂ sfalcio o lavorazione</span></div></div></div>`;
+
+  // ── Momenti della stagione ──
+  const mom = [];
+  (M && M.sat_events || []).filter(e => visible(e.field_id)).forEach(e => mom.push({ d: e.date_to, cls: 'sat', src: 's',
+    dt: e.date_from.slice(5, 7) === e.date_to.slice(5, 7) && e.date_from !== e.date_to ? `${new Date(e.date_from).getDate()}-${dayIT(e.date_to)}` : dayIT(e.date_to),
+    tx: `<b>Sfalcio o lavorazione in ${escapeHTML(nameOf(e.field_id))}</b>: la vegetazione scende da ${fmtIT(e.ndvi_before, 2)} a ${fmtIT(e.ndvi_after, 2)}.` }));
+  const byDay = (key) => { const g = {}; allSegs.forEach(s => { if (key === 'end' && to - s.t1 < 3600e3) return; const k = isoDay(key === 'start' ? s.t0 : s.t1); (g[k] = g[k] || []).push(s); }); return g; };
+  const starts = byDay('start'), ends = byDay('end');
+  // Gli ingressi nei primi 3 giorni contano come un'unica "uscita della mandria"
+  const sk = Object.keys(starts).sort();
+  if (sk.length) {
+    const t0 = new Date(sk[0]), first = sk.filter(k => (new Date(k) - t0) <= 3 * 86400e3);
+    const grp = first.flatMap(k => starts[k]);
+    const lastK = first[first.length - 1];
+    mom.push({ d: sk[0], cls: '', src: 'a', dt: first.length > 1 ? `${new Date(sk[0]).getDate()}-${dayIT(lastK)}` : dayIT(sk[0]),
+      tx: `<b>La mandria esce</b>: ${listIT(grp.map(s => `${s.capi} capi nel ${escapeHTML(nameOf(s.fid))}`))}.` });
+    sk.filter(k => !first.includes(k)).forEach(k => mom.push({ d: k, cls: '', src: 'a', dt: dayIT(k),
+      tx: `<b>Animali in un nuovo pascolo</b>: ${listIT(starts[k].map(s => `${s.capi} capi nel ${escapeHTML(nameOf(s.fid))}`))}.` }));
+  }
+  Object.keys(ends).sort().forEach(k => mom.push({ d: k, cls: '', src: 'a', dt: dayIT(k),
+    tx: `<b>Fuori dal pascolo</b>: ${listIT(ends[k].map(s => escapeHTML(nameOf(s.fid))))}.` }));
+  if (M && M.peak) mom.push({ d: M.peak.date, cls: '', dt: M.peak.month, tx: `<b>Picco della stagione</b>: vegetazione media ${fmtIT(M.peak.value, 2)}${M.peak.record ? `, la più alta dal ${M.peak.since}` : ''}.` });
+  if (M && M.low) mom.push({ d: M.low.date, cls: 'bad', dt: dayIT(M.low.date), tx: `<b>Il punto più secco</b>: vegetazione media ${fmtIT(M.low.value, 2)}.` });
+  if (M && M.recovery) mom.push({ d: M.recovery, cls: '', dt: dayIT(M.recovery), tx: `<b>Ripresa</b>: la vegetazione torna sopra ${fmtIT(M.good_threshold, 2)}.` });
+  mom.sort((a, b) => a.d.localeCompare(b.d));
+  const momHTML = mom.length ? `<div class="mem-sec"><div class="mem-h2">Momenti della stagione</div><div class="mem-card"><div class="mem-mom">${mom.slice(0, 10).map(m =>
+    `<div class="mm ${m.cls}"><div class="dt">${m.dt}${m.src === 's' ? '<span class="src s">satellite</span>' : m.src === 'a' ? '<span class="src a">registrato</span>' : ''}</div><div class="tx">${m.tx}</div></div>`).join('')}</div></div></div>` : '';
+
+  // ── I tuoi pascoli ──
+  let rankHTML = '';
+  if (M && M.fields) {
+    const rows = FIELDS.map(f => ({ f, v: M.fields[f.id] })).filter(r => r.v && r.v.season_mean != null && r.v.hist_mean != null)
+      .sort((a, b) => (a.v.crop - b.v.crop) || (b.v.season_mean - a.v.season_mean));
+    const sc = v => Math.max(0, Math.min(100, (v - 0.3) / 0.45 * 100));
+    const above = rows.filter(r => !r.v.crop && r.v.season_mean > r.v.hist_mean + 0.005).map(r => escapeHTML(r.f.name));
+    const crops = rows.filter(r => r.v.crop).map(r => escapeHTML(r.f.name));
+    const note = [above.length === 1 ? `${above[0]} è l'unico sopra la sua media.` : above.length ? `Sopra la propria media: ${listIT(above)}.` : 'Nessun pascolo è sopra la propria media: è stato un anno difficile per tutti.',
+      crops.length ? `${listIT(crops)} ${crops.length > 1 ? 'sono colture' : 'è una coltura'} da fieno e non si confronta con gli altri.` : ''].join(' ');
+    rankHTML = `<div class="mem-sec"><div class="mem-h2">I tuoi pascoli</div><div class="mem-sub">Vegetazione media di stagione. La tacca nera è la media dello stesso pascolo negli anni precedenti.</div>
+      <div class="mem-card"><div class="mem-rank">${rows.map(r => { const dl = r.v.season_mean - r.v.hist_mean;
+        return `<div class="rrow"><span class="nm">${escapeHTML(r.f.name)}</span><div class="bar"><b style="width:${sc(r.v.season_mean)}%;${r.v.crop ? 'background:#e3c48c' : ''}"></b><i style="left:${sc(r.v.hist_mean)}%"></i></div><span class="dl ${dl < 0 ? 'down' : 'up'}">${fmtIT(r.v.season_mean, 2)} ${dl < 0 ? '↓' : '↑'}${fmtIT(Math.abs(dl), 2)}</span></div>`; }).join('')}</div>
+      <div class="mem-note">${note}</div></div></div>`;
+  }
+
+  // ── Anno su anno ──
+  let yoyHTML = '';
+  if (M && M.season_mean) {
+    const Y = M.season_mean, ks = Object.keys(Y).sort(), vals = ks.map(k => Y[k]);
+    const lo = Math.min(...vals) - 0.08, hi = Math.max(...vals);
+    yoyHTML = `<div class="mem-sec"><div class="mem-h2">Anno su anno</div><div class="mem-sub">Vegetazione media da aprile a ottobre.</div>
+      <div class="mem-card"><div class="mem-years" style="grid-template-columns:repeat(${ks.length},1fr)">${ks.map(k =>
+        `<div class="yr ${k === String(y) ? 'cur' : ''}"><em>${fmtIT(Y[k], 2)}</em><b style="height:${(Y[k] - lo) / (hi - lo) * 100}%"></b><span>${k}</span></div>`).join('')}</div></div></div>`;
+  }
+
+  // ── Spunti ──
+  const tips = (M && M.tips || []).filter(t => visible(t.field_id));
+  const tipsHTML = tips.length ? `<div class="mem-sec"><div class="mem-h2">Da portare nel ${y + 1}</div>${tips.map(t =>
+    `<div class="mem-tip"><div class="ic">${t.icon}</div><p><b>${escapeHTML(t.title.replace('{name}', nameOf(t.field_id)))}</b> ${escapeHTML(t.text)}</p></div>`).join('')}
+    <div class="mem-ai">In futuro questi spunti li scriverà Foresight</div></div>` : '';
+
+  if (!M) {
+    el.innerHTML = head + `<div class="mem-sec"><div class="mem-empty">I dati della stagione non sono ancora disponibili. Verranno calcolati al prossimo aggiornamento giornaliero.</div></div>` + ganttHTML;
+    return;
+  }
+  el.innerHTML = head + story + tilesHTML + curveHTML + ganttHTML + momHTML + rankHTML + yoyHTML + tipsHTML
+    + `<div class="footer-mini">DATI: SENTINEL-2 · STORICO REGISTRATO NELL'APP · EVENTI RILEVATI DAL SATELLITE</div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   IMPOSTAZIONI — pagina
+   ═══════════════════════════════════════════════════════════════ */
+function goImpostazioni() {
+  renderImpostazioni();
+  showPage('page-impostazioni');
+  document.querySelectorAll('.nav-item')[3].classList.add('active');
+}
+
+let _toastTimer;
+function toast(text) {
+  let t = document.getElementById('set-toast');
+  if (!t) { t = document.createElement('div'); t.id = 'set-toast'; t.className = 'set-toast'; document.body.appendChild(t); }
+  t.textContent = text; t.classList.add('show');
+  clearTimeout(_toastTimer); _toastTimer = setTimeout(() => t.classList.remove('show'), 1600);
+}
+
+function renderImpostazioni() {
+  const $ = id => document.getElementById(id);
+  $('set-farm').value = SETTINGS.farmName;
+  $('set-farm').oninput = e => { SETTINGS.farmName = e.target.value.trim() || SETTINGS_DEFAULT.farmName; saveSettings(); };
+  $('set-farm').onchange = () => toast('Salvato');
+
+  $('set-fields').innerHTML = ALL_FIELDS.map(f => {
+    const hidden = SETTINGS.hiddenFields.includes(f.id);
+    return `<div class="set-field ${hidden ? 'off' : ''}" data-fid="${f.id}">
+      <div><input class="set-input" type="text" maxlength="30" value="${escapeHTML(SETTINGS.fieldNames[f.id] || '')}" placeholder="${escapeHTML(f.defaultName)}"
+        oninput="setFieldName('${f.id}', this.value)" onchange="toast('Salvato')">
+        <small>${escapeHTML(f.defaultName)} · ${fmtIT(f.area, 1)} ha</small></div>
+      <input type="checkbox" class="set-switch" ${hidden ? '' : 'checked'} onchange="setFieldVisible('${f.id}', this.checked)" aria-label="Mostra ${escapeHTML(f.defaultName)}">
+    </div>`;
+  }).join('');
+
+  $('set-animal').value = SETTINGS.defaultAnimal;
+  $('set-animal').onchange = e => { SETTINGS.defaultAnimal = e.target.value; saveSettings(); toast('Salvato'); };
+  $('set-fieno').checked = !!SETTINGS.defaultFieno;
+  $('set-fieno').onchange = e => { SETTINGS.defaultFieno = e.target.checked; saveSettings(); toast('Salvato'); };
+
+  const nEv = Object.values(FIELD_EVENTS).reduce((a, l) => a + l.length, 0);
+  $('set-info').innerHTML = `
+    <b>Ultimo dato satellitare</b><span>${dataCache.lastUpdate ? formatDate(dataCache.lastUpdate) : '—'}</span>
+    <b>Pascoli</b><span>${FIELDS.length} visibili su ${ALL_FIELDS.length}</span>
+    <b>Azioni registrate</b><span>${nEv} su questo telefono</span>`;
+}
+
+function setFieldName(fid, value) {
+  const v = value.trim();
+  const f = ALL_FIELDS.find(x => x.id === fid);
+  if (v) SETTINGS.fieldNames[fid] = v; else delete SETTINGS.fieldNames[fid];
+  if (f) f.name = v || f.defaultName;
+  saveSettings();
+}
+
+function setFieldVisible(fid, visible) {
+  const h = new Set(SETTINGS.hiddenFields);
+  if (visible) h.delete(fid); else h.add(fid);
+  if (h.size >= ALL_FIELDS.length) { toast('Almeno un pascolo deve restare visibile'); renderImpostazioni(); return; }
+  SETTINGS.hiddenFields = [...h];
+  saveSettings();
+  document.querySelector(`.set-field[data-fid="${fid}"]`)?.classList.toggle('off', !visible);
+  document.getElementById('set-reload').classList.add('show');
+}
+
+/* ── Backup completo (JSON) ── */
+const BACKUP_KEYS = () => [FIELD_STATE_KEY, EVENT_STORAGE_KEY, DETECT_FEEDBACK_KEY, SETTINGS_KEY];
+
+async function shareOrDownload(content, name, mime, msg) {
+  try {
+    const file = new File([content], name, { type: mime });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: name });
+      return true;
+    }
+  } catch (e) { if (e && e.name === 'AbortError') return false; }
+  try {
+    const url = URL.createObjectURL(new Blob([content], { type: mime }));
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    return true;
+  } catch (e) { if (msg) msg.textContent = 'Download non riuscito su questo browser.'; return false; }
+}
+
+async function exportBackup() {
+  const msg = document.getElementById('set-data-msg');
+  const data = {};
+  BACKUP_KEYS().forEach(k => { try { const v = localStorage.getItem(k); if (v) data[k] = JSON.parse(v); } catch (e) {} });
+  const payload = { app: 'grazesight', version: 1, created: new Date().toISOString(), data };
+  const name = `grazesight_backup_${new Date().toISOString().slice(0, 10)}.json`;
+  if (await shareOrDownload(JSON.stringify(payload), name, 'application/json', msg)) msg.textContent = `Backup salvato: ${name}`;
+}
+
+function importBackup(input) {
+  const msg = document.getElementById('set-data-msg');
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let b;
+    try { b = JSON.parse(reader.result); } catch (e) { msg.textContent = 'Il file non è un backup valido.'; return; }
+    if (!b || b.app !== 'grazesight' || !b.data) { msg.textContent = 'Il file non è un backup di GrazeSight.'; return; }
+    const nEv = Object.values(b.data[EVENT_STORAGE_KEY] || {}).reduce((a, l) => a + (l.length || 0), 0);
+    const when = b.created ? formatDate(b.created) : 'data sconosciuta';
+    if (!confirm(`Ripristinare il backup del ${when} (${nEv} azioni)?\n\nI dati attuali di questo telefono verranno sostituiti.`)) return;
+    BACKUP_KEYS().forEach(k => {
+      try { if (b.data[k] !== undefined) localStorage.setItem(k, JSON.stringify(b.data[k])); else localStorage.removeItem(k); } catch (e) {}
+    });
+    location.reload();
+  };
+  reader.readAsText(file);
+}
+
+function clearLocalData() {
+  if (!confirm('Cancellare storico azioni, stato dei pascoli e impostazioni da questo telefono?\n\nI dati del satellite non vengono toccati. Se non hai un backup, lo storico è perso.')) return;
+  BACKUP_KEYS().forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  location.reload();
+}
+
+/* ── Importa movimenti da file (CSV compilato con l'allevatore) ──
+   Colonne: pascolo;data;azione;capi;specie;note
+   azione: entrata | uscita | sfalcio | riposo | nota
+   pascolo: id (pascolo_3) o nome mostrato nell'app ("Pascolo 3", "Prato della quercia")
+   data: 15/05/2026 oppure 2026-05-15                                    */
+const IMPORT_ACTIONS = {
+  entrata: 'add', carico: 'add', ingresso: 'add', dentro: 'add',
+  uscita: 'move', fuori: 'move', scarico: 'move', spostamento: 'move',
+  sfalcio: 'cut', taglio: 'cut', fieno: 'cut',
+  riposo: 'rest', 'a riposo': 'rest',
+  riaperto: 'open', nota: 'note',
+};
+const SPECIES = { bovini: 'bovini', bovino: 'bovini', vacche: 'bovini', ovini: 'ovini', ovino: 'ovini', pecore: 'ovini',
+  caprini: 'caprini', capre: 'caprini', equini: 'equini', cavalli: 'equini' };
+
+function parseImportCSV(text) {
+  const lines = text.replace(/^﻿/, '').split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) return { rows: [], errors: ['Il file è vuoto.'] };
+  const sep = (lines[0].match(/;/g) || []).length >= (lines[0].match(/,/g) || []).length ? ';' : ',';
+  const split = l => l.split(sep).map(x => x.trim().replace(/^"|"$/g, ''));
+  const head = split(lines[0]).map(h => h.toLowerCase());
+  const col = n => head.indexOf(n);
+  if (col('pascolo') < 0 || col('data') < 0 || col('azione') < 0)
+    return { rows: [], errors: ['Mancano le colonne pascolo, data o azione nella prima riga.'] };
+  const byName = {};
+  ALL_FIELDS.forEach(f => { [f.id, f.name, f.defaultName].forEach(n => { byName[n.toLowerCase()] = f.id; }); });
+  const rows = [], errors = [];
+  lines.slice(1).forEach((l, i) => {
+    const c = split(l), get = n => col(n) >= 0 ? (c[col(n)] || '') : '';
+    const riga = `Riga ${i + 2}`;
+    const fid = byName[get('pascolo').toLowerCase()] || byName['pascolo ' + get('pascolo')];
+    if (!fid) { errors.push(`${riga}: pascolo "${get('pascolo')}" non trovato`); return; }
+    let d = get('data'), m;
+    if ((m = d.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})$/))) d = `${m[3].length === 2 ? '20' + m[3] : m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || isNaN(new Date(d))) { errors.push(`${riga}: data "${get('data')}" non valida`); return; }
+    const type = IMPORT_ACTIONS[get('azione').toLowerCase()];
+    if (!type) { errors.push(`${riga}: azione "${get('azione')}" non riconosciuta (usa entrata, uscita, sfalcio, riposo, nota)`); return; }
+    const capi = parseInt(get('capi'), 10);
+    if (type === 'add' && !(capi > 0)) { errors.push(`${riga}: per un'entrata serve il numero di capi`); return; }
+    const sp = SPECIES[get('specie').toLowerCase()] || 'bovini';
+    const note = get('note');
+    const detail = type === 'add' ? `${capi} capi ${sp}${note ? ' · ' + note : ''}`
+      : type === 'move' ? `Uscita${note ? ' · ' + note : ''}` : note;
+    rows.push({ fid, date: d, type, detail, capi: type === 'add' ? capi : 0, animal: ANIMAL_FROM_LABEL[sp] });
+  });
+  return { rows, errors };
+}
+
+function importMovements(input) {
+  const msg = document.getElementById('set-data-msg');
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const { rows, errors } = parseImportCSV(String(reader.result));
+    if (!rows.length) { msg.innerHTML = escapeHTML(errors.slice(0, 5).join(' · ') || 'Nessuna riga valida.'); return; }
+    // Salta le righe già presenti (stesso pascolo, data, azione e dettaglio)
+    const key = (fid, e) => `${fid}|${e.date}|${e.type}|${e.detail}`;
+    const existing = new Set(Object.entries(FIELD_EVENTS).flatMap(([fid, l]) => l.map(e => key(fid, e))));
+    const fresh = rows.filter(r => !existing.has(key(r.fid, r)));
+    const dup = rows.length - fresh.length;
+    const text = `Importare ${fresh.length} movimenti?` + (dup ? `\n${dup} erano già presenti e verranno saltati.` : '')
+      + (errors.length ? `\n${errors.length} righe con errori verranno ignorate:\n- ${errors.slice(0, 4).join('\n- ')}` : '')
+      + `\n\nLo stato attuale di ogni pascolo verrà aggiornato in base all'ultimo movimento.`;
+    if (!fresh.length) { msg.textContent = 'Tutti i movimenti del file sono già nello storico.'; return; }
+    if (!confirm(text)) return;
+    // Backup automatico prima di modificare
+    try { localStorage.setItem('grazesight_preimport_backup', JSON.stringify({ created: new Date().toISOString(), events: FIELD_EVENTS, state: FIELD_STATE })); } catch (e) {}
+    fresh.forEach((r, i) => {
+      getFieldEvents(r.fid).push({ id: `imp_${Date.now()}_${i}`, type: r.type, date: r.date, detail: r.detail,
+        createdAt: new Date().toISOString(), auto: false, imported: true });
+    });
+    // Stato attuale dall'ultimo movimento di ogni pascolo
+    const lastBy = {};
+    rows.forEach(r => { if (!['cut', 'note'].includes(r.type) && (!lastBy[r.fid] || r.date >= lastBy[r.fid].date)) lastBy[r.fid] = r; });
+    Object.entries(lastBy).forEach(([fid, r]) => {
+      const fs = getFieldState(fid);
+      if (r.type === 'add') { fs.status = 'occupato'; fs.capi = r.capi; fs.animal = r.animal; }
+      else if (r.type === 'rest') { fs.status = 'riposo'; fs.capi = 0; }
+      else { fs.status = 'libero'; fs.capi = 0; }
+    });
+    saveEvents(); saveFieldState();
+    memoriaCache = undefined;
+    msg.textContent = `${fresh.length} movimenti importati.` + (errors.length ? ` ${errors.length} righe ignorate per errori.` : '');
+    renderImpostazioni();
+  };
+  reader.readAsText(file);
 }
 
 /* ═══════════════════════════════════════════════════════════════
