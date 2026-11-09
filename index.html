@@ -2150,8 +2150,8 @@ select.set-input.narrow { width: 120px; text-align: left; }
           <button class="set-btn" onclick="exportBackup()">⇩ Scarica backup completo</button>
           <button class="set-btn" onclick="document.getElementById('set-import').click()">⇧ Ripristina da un backup</button>
           <input type="file" id="set-import" accept=".json,application/json" style="display:none" onchange="importBackup(this)">
-          <button class="set-btn" onclick="document.getElementById('set-import-mov').click()">⇧ Importa movimenti da file (CSV)</button>
-          <input type="file" id="set-import-mov" accept=".csv,text/csv,text/plain" style="display:none" onchange="importMovements(this)">
+          <button class="set-btn" onclick="document.getElementById('set-import-mov').click()">⇧ Importa movimenti da file (Excel o CSV)</button>
+          <input type="file" id="set-import-mov" accept=".xlsx,.xls,.csv,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none" onchange="importMovements(this)">
           <button class="set-btn" onclick="exportAllEvents('set-data-msg')">⇩ Esporta storico in CSV (per Excel)</button>
           <div class="history-export-msg" id="set-data-msg"></div>
           <button class="set-btn danger" onclick="clearLocalData()">Cancella i dati di questo telefono</button>
@@ -5062,7 +5062,7 @@ const IMPORT_ACTIONS = {
   uscita: 'move', fuori: 'move', scarico: 'move', spostamento: 'move',
   sfalcio: 'cut', taglio: 'cut', fieno: 'cut',
   riposo: 'rest', 'a riposo': 'rest',
-  riaperto: 'open', nota: 'note',
+  riaperto: 'open', riapertura: 'open', nota: 'note',
 };
 const SPECIES = { bovini: 'bovini', bovino: 'bovini', vacche: 'bovini', ovini: 'ovini', ovino: 'ovini', pecore: 'ovini',
   caprini: 'caprini', capre: 'caprini', equini: 'equini', cavalli: 'equini' };
@@ -5071,7 +5071,12 @@ function parseImportCSV(text) {
   const lines = text.replace(/^﻿/, '').split(/\r?\n/).filter(l => l.trim());
   if (lines.length < 2) return { rows: [], errors: ['Il file è vuoto.'] };
   const sep = (lines[0].match(/;/g) || []).length >= (lines[0].match(/,/g) || []).length ? ';' : ',';
-  const split = l => l.split(sep).map(x => x.trim().replace(/^"|"$/g, ''));
+  // Divide una riga rispettando i campi tra virgolette (note con ; o , dentro)
+  const split = l => { const out = []; let cur = '', q = false;
+    for (let i = 0; i < l.length; i++) { const ch = l[i];
+      if (q) { if (ch === '"' && l[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; }
+      else if (ch === '"') q = true; else if (ch === sep) { out.push(cur.trim()); cur = ''; } else cur += ch; }
+    out.push(cur.trim()); return out; };
   const head = split(lines[0]).map(h => h.toLowerCase());
   const col = n => head.indexOf(n);
   if (col('pascolo') < 0 || col('data') < 0 || col('azione') < 0)
@@ -5100,14 +5105,43 @@ function parseImportCSV(text) {
   return { rows, errors };
 }
 
+/* Legge il file come testo CSV: accetta CSV (UTF-8 o il formato "ANSI" di Excel)
+   e file Excel .xlsx, convertiti con SheetJS caricato solo al bisogno. */
+let xlsxLib = null;
+function loadXLSX() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  if (xlsxLib) return xlsxLib;
+  xlsxLib = new Promise((ok, ko) => {
+    const sc = document.createElement('script');
+    sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    sc.onload = () => ok(window.XLSX);
+    sc.onerror = () => { xlsxLib = null; ko(new Error('Serve la connessione internet per leggere i file Excel la prima volta.')); };
+    document.head.appendChild(sc);
+  });
+  return xlsxLib;
+}
+async function fileToCSVText(file) {
+  const buf = await file.arrayBuffer();
+  if (/\.xlsx?$/i.test(file.name)) {
+    const X = await loadXLSX();
+    const wb = X.read(buf, { type: 'array', cellDates: true });
+    const name = wb.SheetNames.find(n => n.toLowerCase() === 'movimenti') || wb.SheetNames[0];
+    const csv = X.utils.sheet_to_csv(wb.Sheets[name], { FS: ';', dateNF: 'dd/mm/yyyy', blankrows: false });
+    // Togli le righe vuote (solo separatori) lasciate dalle celle con elenco a discesa
+    return csv.split(/\r?\n/).filter(l => l.replace(/;/g, '').trim()).join('\n');
+  }
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+  catch (e) { return new TextDecoder('windows-1252').decode(buf); }
+}
+
 function importMovements(input) {
   const msg = document.getElementById('set-data-msg');
   const file = input.files && input.files[0];
   input.value = '';
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const { rows, errors } = parseImportCSV(String(reader.result));
+  msg.textContent = 'Lettura del file…';
+  fileToCSVText(file).then(raw => {
+    const { rows, errors } = parseImportCSV(raw);
     if (!rows.length) { msg.innerHTML = escapeHTML(errors.slice(0, 5).join(' · ') || 'Nessuna riga valida.'); return; }
     // Salta le righe già presenti (stesso pascolo, data, azione e dettaglio)
     const key = (fid, e) => `${fid}|${e.date}|${e.type}|${e.detail}`;
@@ -5138,8 +5172,7 @@ function importMovements(input) {
     memoriaCache = undefined;
     msg.textContent = `${fresh.length} movimenti importati.` + (errors.length ? ` ${errors.length} righe ignorate per errori.` : '');
     renderImpostazioni();
-  };
-  reader.readAsText(file);
+  }).catch(err => { msg.textContent = 'Impossibile leggere il file: ' + err.message; });
 }
 
 /* ═══════════════════════════════════════════════════════════════
